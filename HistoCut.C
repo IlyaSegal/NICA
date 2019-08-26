@@ -2,7 +2,7 @@ void HistoCut(Int_t CentralityClasses){
 	TFile *f1 = new TFile("/home/segal/NICA/NICA/centrality-master/build/Result/glauber_qa_11GeV.root");
 	TFile *f2 = new TFile("/home/segal/NICA/Mult_k_tracks_mpd.root");
 	TH1F *FitHisto=(TH1F*)f1->Get("glaub_fit_histo");
-	TH1F *DataHisto=(TH1F*)f2->Get(h_Mult);
+	TH1F *DataHisto=(TH1F*)f2->Get("h_Mult");
 
 	Int_t bins = FitHisto->GetNbinsX();
 	cout<<"bins="<<bins<<endl;
@@ -13,7 +13,7 @@ void HistoCut(Int_t CentralityClasses){
 	Double_t integral = FitHisto->Integral(2,bins);
 	cout<<"integral="<<integral<<endl;
 
-	TFile *f = new TFile("HistoCutResult_RPC.root", "recreate");
+	TFile *f = new TFile("HistoCutResult.root", "recreate");
 	TH1F* ResultHisto[CentralityClasses];
 	for (int i = 0; i < CentralityClasses; i++)   ResultHisto[i] = new TH1F(Form("CentralityClass_Fit %.1f%%-%.1f%%", i*100.0/CentralityClasses, (i+1)*100.0/CentralityClasses),";tracks;counts",bins, min, max);
 	Int_t j=1;
