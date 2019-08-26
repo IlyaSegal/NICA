@@ -1,26 +1,8 @@
-enum eCentralityEstimator {
-        kTOFRPC                          =  0,
-        kTOF                                 ,
-        kRPC                                 ,
-        kMDC                                 ,
-	kFW                                  ,
-        kCentralityEstimator              
-    };
-
-TString CentralityEstimatorName[kCentralityEstimator]=
-    {
-        "hitsTOF+RPC"                         ,
-        "hitsTOF"                             ,
-        "hitsRPC"                             ,
-        "tracksMDC"                           ,
-	"FWSumChargeZ"
-    };
-
-void HistoCut(Int_t CentralityClasses, Int_t CE){
-	TFile *f1 = new TFile("/home/vad/centrality/build/Result/glauber_qa_RPC.root");
-	TFile *f2 = new TFile("/home/vad/NIR_codes/QAHistoBuilder/QASelectedPT2Histos.root");
+void HistoCut(Int_t CentralityClasses){
+	TFile *f1 = new TFile("/home/segal/NICA/NICA/centrality-master/build/Result/glauber_qa_11GeV.root");
+	TFile *f2 = new TFile("/home/segal/NICA/Mult_k_tracks_mpd.root");
 	TH1F *FitHisto=(TH1F*)f1->Get("glaub_fit_histo");
-	TH1F *DataHisto=(TH1F*)f2->Get(Form("%s_selected", CentralityEstimatorName[CE].Data()));
+	TH1F *DataHisto=(TH1F*)f2->Get(h_Mult);
 
 	Int_t bins = FitHisto->GetNbinsX();
 	cout<<"bins="<<bins<<endl;
@@ -33,7 +15,7 @@ void HistoCut(Int_t CentralityClasses, Int_t CE){
 
 	TFile *f = new TFile("HistoCutResult_RPC.root", "recreate");
 	TH1F* ResultHisto[CentralityClasses];
-	for (int i = 0; i < CentralityClasses; i++)   ResultHisto[i] = new TH1F(Form("CentralityClass_Fit %.1f%%-%.1f%%", i*100.0/CentralityClasses, (i+1)*100.0/CentralityClasses), Form(";%s;counts", CentralityEstimatorName[CE].Data()),bins, min, max);
+	for (int i = 0; i < CentralityClasses; i++)   ResultHisto[i] = new TH1F(Form("CentralityClass_Fit %.1f%%-%.1f%%", i*100.0/CentralityClasses, (i+1)*100.0/CentralityClasses),";tracks;counts",bins, min, max);
 	Int_t j=1;
 	for (int i = 0; i < CentralityClasses; i++) {
 		ResultHisto[i] -> SetLineColor(j);
@@ -43,7 +25,7 @@ void HistoCut(Int_t CentralityClasses, Int_t CE){
 	for (int i = 0; i < CentralityClasses; i++) ResultHisto[i] -> SetLineWidth(4);
 
 	TH1F* CentralityHisto[CentralityClasses];
-	for (int i = 0; i < CentralityClasses; i++)   CentralityHisto[i] = new TH1F(Form("CentralityClass %.1f%%-%.1f%%", i*100.0/CentralityClasses, (i+1)*100.0/CentralityClasses), Form(";%s;counts", CentralityEstimatorName[CE].Data()), bins, min, max);
+	for (int i = 0; i < CentralityClasses; i++)   CentralityHisto[i] = new TH1F(Form("CentralityClass %.1f%%-%.1f%%", i*100.0/CentralityClasses, (i+1)*100.0/CentralityClasses), ";tracks;counts", bins, min, max);
 	j=1; 
 	for (int i = 0; i < CentralityClasses; i++) {
 		CentralityHisto[i] -> SetLineColor(j);
@@ -52,7 +34,7 @@ void HistoCut(Int_t CentralityClasses, Int_t CE){
 		}
 	for (int i = 0; i < CentralityClasses; i++) CentralityHisto[i] -> SetLineWidth(4);
 
-	TH1F* Centrality_vs_Multiplisity = new TH1F("Centrality_vs_Multiplisity", Form(";%s;CentralityPercent", CentralityEstimatorName[CE].Data()),bins, min, max);
+	TH1F* Centrality_vs_Multiplisity = new TH1F("Centrality_vs_Multiplisity", ";tracks;CentralityPercent",bins, min, max);
 	Centrality_vs_Multiplisity -> SetLineColor(1);
 	Centrality_vs_Multiplisity -> SetLineWidth(4);
 	
@@ -84,7 +66,7 @@ void HistoCut(Int_t CentralityClasses, Int_t CE){
 			}
    		}
 	
-	TTree *Borders=new TTree(Form("Borders_%s", CentralityEstimatorName[CE].Data()), Form("Borders_%s", CentralityEstimatorName[CE].Data()));
+	TTree *Borders=new TTree("Borders", "Borders");
 	Int_t Ncc, BIN, MinBorder, MaxBorder;
 	Float_t MinPercent, MaxPercent;
 	Borders -> Branch("Ncc", &Ncc);
