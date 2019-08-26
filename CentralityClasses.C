@@ -178,7 +178,7 @@ void CentralityClasses(Int_t CentralityClasses){
 	c3->SaveAs("/home/segal/NICA/NICA/11GeV/Ncoll_VS_Centrality.C");	
 
 	TCanvas* c13 = new TCanvas("B_average_VS_Centrality","B_average_VS_Centrality", 1500, 900);
-	TLegend legend13(0.75,0.75,1.0,1.0, "<B> VS Centrality");
+	TLegend legend13(0.1,0.75,0.35,1.0, "<B> VS Centrality");
 	legend13.AddEntry(B_average_VS_Centrality, "<B> VS Centrality");
 	B_average_VS_Centrality -> Draw("E1, P, X0");
 	legend13.Draw("same");
