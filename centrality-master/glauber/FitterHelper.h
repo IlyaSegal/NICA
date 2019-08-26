@@ -7,12 +7,12 @@
 #ifndef GlauberFitterHelper_H
 #define GlauberFitterHelper_H 1
 
-#include "/home/vad/ROOT/root/include/TCanvas.h"
-#include "/home/vad/ROOT/root/include/TH1.h"
-#include "/home/vad/ROOT/root/include/TH2.h"
-#include "/home/vad/ROOT/root/include/TPad.h"
-#include "/home/vad/ROOT/root/include/TLegend.h"
-#include "/home/vad/ROOT/root/include/TFile.h"
+#include "TCanvas.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TPad.h"
+#include "TLegend.h"
+#include "TFile.h"
 
 #include "Fitter.h"
 
