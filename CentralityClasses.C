@@ -1,9 +1,10 @@
 void CentralityClasses(Int_t CentralityClasses){
 	TFile *f1 = new TFile("/home/segal/NICA/NICA/centrality-master/build/Result/HistoCutResult_11GeV.root");
 	TFile *f5 = new TFile("/home/segal/NICA/NICA/centrality-master/build/Result/glauber_qa_11GeV.root");
+	TTree *Borders=(TTree*)f1->Get("Borders");
+	
 	TFile *fOut   = new TFile("FINAL.root", "recreate");
 	TTree *Result=new TTree("Result", "Result");
-	TTree *Borders=(TTree*)f1->Get("Borders");
 	TH2D  *B_VS_Multiplicity     = (TH2D*)f5->Get("B_VS_Multiplicity");
 	TH2D  *Npart_VS_Multiplicity = (TH2D*)f5->Get("Npart_VS_Multiplicity");
 	TH2D  *Ncoll_VS_Multiplicity = (TH2D*)f5->Get("Ncoll_VS_Multiplicity");
@@ -72,9 +73,9 @@ void CentralityClasses(Int_t CentralityClasses){
 	Npart_average_VS_Centrality -> GetXaxis() -> SetNdivisions (10, kTRUE);
 	Ncoll_average_VS_Centrality -> GetXaxis() -> SetNdivisions (10, kTRUE);
 
-	B_VS_CentralityHisto[CentralityClasses]     = B_VS_Multiplicity->ProjectionY("B_VS_CentralityClass 0%-100%", 0, 800);
-	Npart_VS_CentralityHisto[CentralityClasses] = Npart_VS_Multiplicity->ProjectionY("Npart_VS_CentralityClass 0%-100%", 0, 800);
-	Ncoll_VS_CentralityHisto[CentralityClasses] = Ncoll_VS_Multiplicity->ProjectionY("Ncoll_VS_CentralityClass 0%-100%", 0, 800);
+	B_VS_CentralityHisto[CentralityClasses]     = B_VS_Multiplicity->ProjectionY("B_VS_CentralityClass 0%-100%", 0, 10000);
+	Npart_VS_CentralityHisto[CentralityClasses] = Npart_VS_Multiplicity->ProjectionY("Npart_VS_CentralityClass 0%-100%", 0, 10000);
+	Ncoll_VS_CentralityHisto[CentralityClasses] = Ncoll_VS_Multiplicity->ProjectionY("Ncoll_VS_CentralityClass 0%-100%", 0, 10000);
        	for (int i=0; i<entries; i++) {
 		Borders -> GetEntry(i);
 		B_VS_CentralityHisto[i]     = B_VS_Multiplicity->ProjectionY(Form("B_VS_CentralityClass %.1f%%-%.1f%%", i*100.0/CentralityClasses, (i+1)*100.0/CentralityClasses), MinBorder, MaxBorder);
