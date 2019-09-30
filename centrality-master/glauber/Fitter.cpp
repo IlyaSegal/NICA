@@ -24,6 +24,16 @@ Glauber::Fitter::Fitter(std::unique_ptr<TTree> tree)
     fSimTree->SetBranchAddress("B",  &fB);
     fSimTree->SetBranchAddress("Npart",  &fNpart);
     fSimTree->SetBranchAddress("Ncoll",  &fNcoll);
+    fSimTree->SetBranchAddress("Ecc1",  &fEcc1);
+    fSimTree->SetBranchAddress("Psi1",  &fPsi1);
+    fSimTree->SetBranchAddress("Ecc2",  &fEcc2);
+    fSimTree->SetBranchAddress("Psi2",  &fPsi2);
+    fSimTree->SetBranchAddress("Ecc3",  &fEcc3);
+    fSimTree->SetBranchAddress("Psi3",  &fPsi3);
+    fSimTree->SetBranchAddress("Ecc4",  &fEcc4);
+    fSimTree->SetBranchAddress("Psi4",  &fPsi4);
+    fSimTree->SetBranchAddress("Ecc5",  &fEcc5);
+    fSimTree->SetBranchAddress("Psi5",  &fPsi5);
 }
 
 void Glauber::Fitter::Init(int nEntries, TString fmode)
@@ -39,16 +49,57 @@ void Glauber::Fitter::Init(int nEntries, TString fmode)
     const int NpartMax  = int (fSimTree->GetMaximum("Npart") );
     const int NcollMax  = int (fSimTree->GetMaximum("Ncoll") );
     
+    const float Ecc1Min  =  fSimTree->GetMinimum("Ecc1");
+    const float Psi1Min  =  fSimTree->GetMinimum("Psi1");
+    const float Ecc2Min  =  fSimTree->GetMinimum("Ecc2");
+    const float Psi2Min  =  fSimTree->GetMinimum("Psi2");
+    const float Ecc3Min  =  fSimTree->GetMinimum("Ecc3");
+    const float Psi3Min  =  fSimTree->GetMinimum("Psi3");
+    const float Ecc4Min  =  fSimTree->GetMinimum("Ecc4");
+    const float Psi4Min  =  fSimTree->GetMinimum("Psi4");
+    const float Ecc5Min  =  fSimTree->GetMinimum("Ecc5");
+    const float Psi5Min  =  fSimTree->GetMinimum("Psi5");
+    const float Ecc1Max  =  fSimTree->GetMaximum("Ecc1");
+    const float Psi1Max  =  fSimTree->GetMaximum("Psi1");
+    const float Ecc2Max  =  fSimTree->GetMaximum("Ecc2");
+    const float Psi2Max  =  fSimTree->GetMaximum("Psi2");
+    const float Ecc3Max  =  fSimTree->GetMaximum("Ecc3");
+    const float Psi3Max  =  fSimTree->GetMaximum("Psi3");
+    const float Ecc4Max  =  fSimTree->GetMaximum("Ecc4");
+    const float Psi4Max  =  fSimTree->GetMaximum("Psi4");
+    const float Ecc5Max  =  fSimTree->GetMaximum("Ecc5");
+    const float Psi5Max  =  fSimTree->GetMaximum("Psi5");
+    
     fBHisto      = TH1F ("fBHisto",  "B",  BMax/fBinSize,  0, BMax );
     fNpartHisto  = TH1F ("fNpartHisto",  "Npart",  NpartMax/fBinSize,  0, NpartMax );
     fNcollHisto  = TH1F ("fNcollHisto",  "Ncoll",  NcollMax/fBinSize,  0, NcollMax );
+    fEcc1Histo  = TH1F ("fEcc1Histo",  "#epsilon1",  (Ecc1Max-Ecc1Min)/0.01  Ecc1Min, Ecc1Max );
+    fPsi1Histo  = TH1F ("fPsi1Histo",  "#psi1",  (Psi1Max-Psi1Min)/0.01  Psi1Min, Psi1Max );
+    fEcc2Histo  = T1F ("fEcc2Histo",  "#epsilon2",  (Ecc2Max-Ecc2Min)/0.01  Ecc2Min, Ecc2Max );
+    fPsi2Histo  = TH1F ("fPsi2Histo",  "#psi2",  (Psi2Max-Psi2Min)/0.01  Psi2Min, Psi2Max );
+    fEcc3Histo  = TH1F ("fEcc3Histo",  "#epsilon3",  (Ecc3Max-Ecc3Min)/0.01  Ecc3Min, Ecc3Max );
+    fPsi3Histo  = TH1F ("fPsi3Histo",  "#psi3",  (Psi3Max-Psi3Min)/0.01  Psi3Min, Psi3Max );
+    fEcc4Histo  = TH1F ("fEcc4Histo",  "#epsilon4",  (Ecc4Max-Ecc4Min)/0.01  Ecc4Min, Ecc4Max );
+    fPsi4Histo  = TH1F ("fPsi4Histo",  "#psi4",  (Psi4Max-Psi4Min)/0.01  Psi4Min, Psi4Max );
+    fEcc5Histo  = TH1F ("fEcc5Histo",  "#epsilon5",  (Ecc5Max-Ecc5Min)/0.01  Ecc5Min, Ecc5Max );
+    fPsi5Histo  = TH1F ("fPsi5Histo",  "#psi5",  (Psi5Max-Psi5Min)/0.01  Psi5Min, Psi5Max );
     
     for (int i=0; i<nEntries; i++)
     	{
        	fSimTree->GetEntry(i);
-	fBHisto.Fill(fB);
+        fBHisto.Fill(fB);
        	fNcollHisto.Fill(fNcoll);
        	fNpartHisto.Fill(fNpart);
+        fEcc1Histo.Fill(fEcc1);
+        fPsi1Histo.Fill(fPsi1);
+        fEcc2Histo.Fill(fEcc2);
+        fPsi2Histo.Fill(fPsi2);
+        fEcc3Histo.Fill(fEcc3);
+        fPsi3Histo.Fill(fPsi3);
+        fEcc4Histo.Fill(fEcc4);
+        fPsi4Histo.Fill(fPsi4);
+        fEcc5Histo.Fill(fEcc5);
+        fPsi5Histo.Fill(fPsi5);
     	}
     std::cout << fSimTree->GetEntries() << std::endl;
 
@@ -100,13 +151,21 @@ float Glauber::Fitter::NancestorsMax(float f) const
 void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, int n, Bool_t Norm2Data)
 {    
     fGlauberFitHisto = TH1F("glaub", "", fNbins*1.3, 0, 1.3*fMaxValue);
-    fB_VS_Multiplicity = TH2F("", ";nHits;B, fm", fNbins*1.3, 0, 1.3*fMaxValue, 200, 0, 20);
-    fNpart_VS_Multiplicity = TH2F("", ";nHits;Npart", fNbins*1.3, 0, 1.3*fMaxValue, 450, 0, 450);
-    fNcoll_VS_Multiplicity = TH2F("", ";nHits;Ncoll", fNbins*1.3, 0, 1.3*fMaxValue, 750, 0, 750);
+    fB_VS_Multiplicity = TH2F("B_VS_Multiplicity", "B VS Multiplicity;nHits;B, fm", fNbins*1.3, 0, 1.3*fMaxValue, 200, 0, 20);
+    fNpart_VS_Multiplicity = TH2F("Npart_VS_Multiplicity", "N_{part} VS Multiplicity;nHits;N_{part}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
+    fNcoll_VS_Multiplicity = TH2F("Ncoll_VS_Multiplicity", "N_{coll} VS Multiplicity;nHits;N_{coll}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
+    fEcc1_VS_Multiplicity = TH2F("Ecc1_VS_Multiplicity", "#epsilon1 VS Multiplicity;nHits;#epsilon1", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi1_VS_Multiplicity = TH2F("Psi1_VS_Multiplicity", "#psi1 VS Multiplicity;nHits;#psi1", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
+    fEcc2_VS_Multiplicity = TH2F("Ecc2_VS_Multiplicity", "#epsilon2 VS Multiplicity;nHits;#epsilon2", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi2_VS_Multiplicity = TH2F("Psi2_VS_Multiplicity", "#psi2 VS Multiplicity;nHits;#psi2", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
+    fEcc3_VS_Multiplicity = TH2F("Ecc3_VS_Multiplicity", "#epsilon3 VS Multiplicity;nHits;#epsilon3", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi3_VS_Multiplicity = TH2F("Psi3_VS_Multiplicity", "#psi3 VS Multiplicity;nHits;#psi3", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
+    fEcc4_VS_Multiplicity = TH2F("Ecc4_VS_Multiplicity", "#epsilon4 VS Multiplicity;nHits;#epsilon4", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi4_VS_Multiplicity = TH2F("Psi4_VS_Multiplicity", "#psi4 VS Multiplicity;nHits;#psi4", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
+    fEcc5_VS_Multiplicity = TH2F("Ecc5_VS_Multiplicity", "#epsilon5 VS Multiplicity;nHits;#epsilon5", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi5_VS_Multiplicity = TH2F("Psi5_VS_Multiplicity", "#psi5 VS Multiplicity;nHits;#psi5", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
+    
     fGlauberFitHisto.SetName("glaub_fit_histo");
-    fB_VS_Multiplicity.SetName("B_VS_Multiplicity");
-    fNpart_VS_Multiplicity.SetName("Npart_VS_Multiplicity");
-    fNcoll_VS_Multiplicity.SetName("Ncoll_VS_Multiplicity");
     
     SetNBDhist(mu,  k);
 
@@ -119,9 +178,19 @@ void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, int n, Boo
         float nHits {0.};
         for (int j=0; j<Na; j++) nHits += int(htemp->GetRandom());
         fGlauberFitHisto.Fill(nHits);
-	fB_VS_Multiplicity.Fill(nHits,fB);
-	fNpart_VS_Multiplicity.Fill(nHits,fNpart);
-	fNcoll_VS_Multiplicity.Fill(nHits,fNcoll);
+        fB_VS_Multiplicity.Fill(nHits,fB);
+        fNpart_VS_Multiplicity.Fill(nHits,fNpart);
+        fNcoll_VS_Multiplicity.Fill(nHits,fNcoll);
+        fEcc1_VS_Multiplicity.Fill(nHits,fEcc1);
+        fPsi1_VS_Multiplicity.Fill(nHits,fPsi1);
+        fEcc2_VS_Multiplicity.Fill(nHits,fEcc2);
+        fPsi2_VS_Multiplicity.Fill(nHits,fPsi2);
+        fEcc3_VS_Multiplicity.Fill(nHits,fEcc3);
+        fPsi3_VS_Multiplicity.Fill(nHits,fPsi3);
+        fEcc4_VS_Multiplicity.Fill(nHits,fEcc4);
+        fPsi4_VS_Multiplicity.Fill(nHits,fPsi4);
+        fEcc5_VS_Multiplicity.Fill(nHits,fEcc5);
+        fPsi5_VS_Multiplicity.Fill(nHits,fPsi5);
     }
     if (Norm2Data)
         NormalizeGlauberFit();
@@ -239,17 +308,9 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
     TTree* tree {new TTree("test_tree", "tree" )};
     
     TH1F h1("h1", "", fNbins, 0, fMaxValue);
-
-    TH2F h2("h2", ";B, fm;nHits", fNbins, 0, fMaxValue, 200, 0, 20);
-    TH2F h3("h3", ";Npart;nHits", fNbins, 0, fMaxValue, 450, 0, 450);
-    TH2F h4("h4", ";Ncoll;nHits", fNbins, 0, fMaxValue, 750, 0, 750);
            
     float f, mu, k, chi2, chi2_error, sigma;
 
-    tree->Branch("histo1", "TH1F", &h1);
-    tree->Branch("histo2", "TH2F", &h2);
-    tree->Branch("histo3", "TH2F", &h3);
-    tree->Branch("histo4", "TH2F", &h4);
     tree->Branch("f",    &f,    "f/F");   
     tree->Branch("mu",   &mu,   "mu/F");   
     tree->Branch("k",    &k,    "k/F");   
@@ -268,13 +329,11 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
 		const float mu_min = 0.7*mu;
 		const float mu_max = 1.0*mu;
 
-		FindMuGoldenSection (&mu, &chi2, &chi2_error, mu_min, mu_max, f, k, nEvents, 2, n);
-		n=n+2;
+    if (fNiter == 0) fNiter = 2;
+
+		FindMuGoldenSection (&mu, &chi2, &chi2_error, mu_min, mu_max, f, k, nEvents, fNiter, n);
+		n=n+fNiter;
 		sigma = ( mu/k + 1 ) * mu;
-		h1 = fGlauberFitHisto;
-		h2 = fB_VS_Multiplicity;
-		h3 = fNpart_VS_Multiplicity;
-		h4 = fNcoll_VS_Multiplicity;
 		
 		tree->Fill();
 		
@@ -289,6 +348,16 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
 		    fBestB_VS_Multiplicity=fB_VS_Multiplicity;
 	 	    fBestNpart_VS_Multiplicity=fNpart_VS_Multiplicity;
 	 	    fBestNcoll_VS_Multiplicity=fNcoll_VS_Multiplicity;
+            fBestEcc1_VS_Multiplicity=fEcc1_VS_Multiplicity;
+            fBestPsi1_VS_Multiplicity=fPsi1_VS_Multiplicity;
+            fBestEcc2_VS_Multiplicity=fEcc2_VS_Multiplicity;
+            fBestPsi2_VS_Multiplicity=fPsi2_VS_Multiplicity;
+            fBestEcc3_VS_Multiplicity=fEcc3_VS_Multiplicity;
+            fBestPsi3_VS_Multiplicity=fPsi3_VS_Multiplicity;
+            fBestEcc4_VS_Multiplicity=fEcc4_VS_Multiplicity;
+            fBestPsi4_VS_Multiplicity=fPsi4_VS_Multiplicity;
+            fBestEcc5_VS_Multiplicity=fEcc5_VS_Multiplicity;
+            fBestPsi5_VS_Multiplicity=fPsi5_VS_Multiplicity;
 		}            
 
 	    } 
