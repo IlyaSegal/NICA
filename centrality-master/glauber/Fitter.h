@@ -60,6 +60,7 @@ namespace Glauber
         void SetOutDirName (TString name)    { fOutDirName = name; }
         void SetMode (const TString mode) { fMode = mode; }
 	void SetMassNumber (Float_t A) { fA = A; }
+  void SetNiter(Int_t a) { fNiter = a; }
  
 //         
 //         Getters
@@ -91,6 +92,7 @@ namespace Glauber
         TH1F fNbdHisto;
         TH1F fGlauberFitHisto; 
         TH1F fBestFitHisto;
+    Int_t fNiter;
 
 	TH2F fB_VS_Multiplicity;
 	TH2F fNpart_VS_Multiplicity;

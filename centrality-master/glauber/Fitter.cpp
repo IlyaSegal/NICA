@@ -268,8 +268,10 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
 		const float mu_min = 0.7*mu;
 		const float mu_max = 1.0*mu;
 
-		FindMuGoldenSection (&mu, &chi2, &chi2_error, mu_min, mu_max, f, k, nEvents, 2, n);
-		n=n+2;
+    if (fNiter == 0) fNiter = 2;
+
+		FindMuGoldenSection (&mu, &chi2, &chi2_error, mu_min, mu_max, f, k, nEvents, fNiter, n);
+		n=n+fNiter;
 		sigma = ( mu/k + 1 ) * mu;
 		h1 = fGlauberFitHisto;
 		h2 = fB_VS_Multiplicity;
