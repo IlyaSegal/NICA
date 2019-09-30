@@ -43,6 +43,16 @@ namespace Glauber
 		  TH2F hBestB_VS_Multiplicity=fit.GetBestB_VS_Multiplicity();
 		  TH2F hBestNpart_VS_Multiplicity=fit.GetBestNpart_VS_Multiplicity();
 		  TH2F hBestNcoll_VS_Multiplicity=fit.GetBestNcoll_VS_Multiplicity();
+          TH2F hBestEcc1_VS_Multiplicity=fit.GetBestEcc1_VS_Multiplicity();
+          TH2F hBestPsi1_VS_Multiplicity=fit.GetBestPsi1_VS_Multiplicity();
+          TH2F hBestEcc2_VS_Multiplicity=fit.GetBestEcc2_VS_Multiplicity();
+          TH2F hBestPsi2_VS_Multiplicity=fit.GetBestPsi2_VS_Multiplicity();
+          TH2F hBestEcc3_VS_Multiplicity=fit.GetBestEcc3_VS_Multiplicity();
+          TH2F hBestPsi3_VS_Multiplicity=fit.GetBestPsi3_VS_Multiplicity();
+          TH2F hBestEcc4_VS_Multiplicity=fit.GetBestEcc4_VS_Multiplicity();
+          TH2F hBestPsi4_VS_Multiplicity=fit.GetBestPsi4_VS_Multiplicity();
+          TH2F hBestEcc5_VS_Multiplicity=fit.GetBestEcc5_VS_Multiplicity();
+          TH2F hBestPsi5_VS_Multiplicity=fit.GetBestPsi5_VS_Multiplicity();
 
         std::unique_ptr <TFile> fOut{TFile::Open("glauber_qa.root", "recreate")}; 
 
@@ -75,9 +85,19 @@ namespace Glauber
                 legData->AddEntry(&hData ,"Data", "l");    
                 legData->Draw("same");   
                 hBestFit.Write();
-		hBestB_VS_Multiplicity.Write();
-		hBestNpart_VS_Multiplicity.Write();
-		hBestNcoll_VS_Multiplicity.Write();
+                hBestB_VS_Multiplicity.Write();
+                hBestNpart_VS_Multiplicity.Write();
+                hBestNcoll_VS_Multiplicity.Write();
+                hBestEcc1_VS_Multiplicity.Write();
+                hBestEcc1_VS_Multiplicity.Write();
+                hBestEcc2_VS_Multiplicity.Write();
+                hBestEcc2_VS_Multiplicity.Write();
+                hBestEcc3_VS_Multiplicity.Write();
+                hBestEcc3_VS_Multiplicity.Write();
+                hBestEcc4_VS_Multiplicity.Write();
+                hBestEcc4_VS_Multiplicity.Write();
+                hBestEcc5_VS_Multiplicity.Write();
+                hBestEcc5_VS_Multiplicity.Write();
             }
         }
         
