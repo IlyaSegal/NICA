@@ -73,16 +73,16 @@ void Glauber::Fitter::Init(int nEntries, TString fmode)
     fBHisto      = TH1F ("fBHisto",  "B",  BMax/fBinSize,  0, BMax );
     fNpartHisto  = TH1F ("fNpartHisto",  "Npart",  NpartMax/fBinSize,  0, NpartMax );
     fNcollHisto  = TH1F ("fNcollHisto",  "Ncoll",  NcollMax/fBinSize,  0, NcollMax );
-    fEcc1Histo  = TH1F ("fEcc1Histo",  "#epsilon1",  (Ecc1Max-Ecc1Min)/0.01  Ecc1Min, Ecc1Max );
-    fPsi1Histo  = TH1F ("fPsi1Histo",  "#psi1",  (Psi1Max-Psi1Min)/0.01  Psi1Min, Psi1Max );
-    fEcc2Histo  = T1F ("fEcc2Histo",  "#epsilon2",  (Ecc2Max-Ecc2Min)/0.01  Ecc2Min, Ecc2Max );
-    fPsi2Histo  = TH1F ("fPsi2Histo",  "#psi2",  (Psi2Max-Psi2Min)/0.01  Psi2Min, Psi2Max );
-    fEcc3Histo  = TH1F ("fEcc3Histo",  "#epsilon3",  (Ecc3Max-Ecc3Min)/0.01  Ecc3Min, Ecc3Max );
-    fPsi3Histo  = TH1F ("fPsi3Histo",  "#psi3",  (Psi3Max-Psi3Min)/0.01  Psi3Min, Psi3Max );
-    fEcc4Histo  = TH1F ("fEcc4Histo",  "#epsilon4",  (Ecc4Max-Ecc4Min)/0.01  Ecc4Min, Ecc4Max );
-    fPsi4Histo  = TH1F ("fPsi4Histo",  "#psi4",  (Psi4Max-Psi4Min)/0.01  Psi4Min, Psi4Max );
-    fEcc5Histo  = TH1F ("fEcc5Histo",  "#epsilon5",  (Ecc5Max-Ecc5Min)/0.01  Ecc5Min, Ecc5Max );
-    fPsi5Histo  = TH1F ("fPsi5Histo",  "#psi5",  (Psi5Max-Psi5Min)/0.01  Psi5Min, Psi5Max );
+    fEcc1Histo  = TH1F ("fEcc1Histo",  "#epsilon1",  (Ecc1Max-Ecc1Min)/0.01,  Ecc1Min, Ecc1Max );
+    fPsi1Histo  = TH1F ("fPsi1Histo",  "#psi1",  (Psi1Max-Psi1Min)/0.01,  Psi1Min, Psi1Max );
+    fEcc2Histo  = TH1F ("fEcc2Histo",  "#epsilon2",  (Ecc2Max-Ecc2Min)/0.01,  Ecc2Min, Ecc2Max );
+    fPsi2Histo  = TH1F ("fPsi2Histo",  "#psi2",  (Psi2Max-Psi2Min)/0.01,  Psi2Min, Psi2Max );
+    fEcc3Histo  = TH1F ("fEcc3Histo",  "#epsilon3",  (Ecc3Max-Ecc3Min)/0.01,  Ecc3Min, Ecc3Max );
+    fPsi3Histo  = TH1F ("fPsi3Histo",  "#psi3",  (Psi3Max-Psi3Min)/0.01,  Psi3Min, Psi3Max );
+    fEcc4Histo  = TH1F ("fEcc4Histo",  "#epsilon4",  (Ecc4Max-Ecc4Min)/0.01,  Ecc4Min, Ecc4Max );
+    fPsi4Histo  = TH1F ("fPsi4Histo",  "#psi4",  (Psi4Max-Psi4Min)/0.01,  Psi4Min, Psi4Max );
+    fEcc5Histo  = TH1F ("fEcc5Histo",  "#epsilon5",  (Ecc5Max-Ecc5Min)/0.01,  Ecc5Min, Ecc5Max );
+    fPsi5Histo  = TH1F ("fPsi5Histo",  "#psi5",  (Psi5Max-Psi5Min)/0.01,  Psi5Min, Psi5Max );
     
     for (int i=0; i<nEntries; i++)
     	{
@@ -151,21 +151,34 @@ float Glauber::Fitter::NancestorsMax(float f) const
 void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, int n, Bool_t Norm2Data)
 {    
     fGlauberFitHisto = TH1F("glaub", "", fNbins*1.3, 0, 1.3*fMaxValue);
-    fB_VS_Multiplicity = TH2F("B_VS_Multiplicity", "B VS Multiplicity;nHits;B, fm", fNbins*1.3, 0, 1.3*fMaxValue, 200, 0, 20);
-    fNpart_VS_Multiplicity = TH2F("Npart_VS_Multiplicity", "N_{part} VS Multiplicity;nHits;N_{part}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
-    fNcoll_VS_Multiplicity = TH2F("Ncoll_VS_Multiplicity", "N_{coll} VS Multiplicity;nHits;N_{coll}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
-    fEcc1_VS_Multiplicity = TH2F("Ecc1_VS_Multiplicity", "#epsilon1 VS Multiplicity;nHits;#epsilon1", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi1_VS_Multiplicity = TH2F("Psi1_VS_Multiplicity", "#psi1 VS Multiplicity;nHits;#psi1", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
-    fEcc2_VS_Multiplicity = TH2F("Ecc2_VS_Multiplicity", "#epsilon2 VS Multiplicity;nHits;#epsilon2", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi2_VS_Multiplicity = TH2F("Psi2_VS_Multiplicity", "#psi2 VS Multiplicity;nHits;#psi2", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
-    fEcc3_VS_Multiplicity = TH2F("Ecc3_VS_Multiplicity", "#epsilon3 VS Multiplicity;nHits;#epsilon3", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi3_VS_Multiplicity = TH2F("Psi3_VS_Multiplicity", "#psi3 VS Multiplicity;nHits;#psi3", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
-    fEcc4_VS_Multiplicity = TH2F("Ecc4_VS_Multiplicity", "#epsilon4 VS Multiplicity;nHits;#epsilon4", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi4_VS_Multiplicity = TH2F("Psi4_VS_Multiplicity", "#psi4 VS Multiplicity;nHits;#psi4", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
-    fEcc5_VS_Multiplicity = TH2F("Ecc5_VS_Multiplicity", "#epsilon5 VS Multiplicity;nHits;#epsilon5", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi5_VS_Multiplicity = TH2F("Psi5_VS_Multiplicity", "#psi5 VS Multiplicity;nHits;#psi5", fNbins*1.3, 0, 1.3*fMaxValue, 2*TMath::pi/0.01, -1*TMath::pi, -1*TMath::pi);
+    fB_VS_Multiplicity = TH2F("", "B VS Multiplicity;nHits;B, fm", fNbins*1.3, 0, 1.3*fMaxValue, 200, 0, 20);
+    fNpart_VS_Multiplicity = TH2F("", "N_{part} VS Multiplicity;nHits;N_{part}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
+    fNcoll_VS_Multiplicity = TH2F("", "N_{coll} VS Multiplicity;nHits;N_{coll}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
+    fEcc1_VS_Multiplicity = TH2F("", "#epsilon1 VS Multiplicity;nHits;#epsilon1", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi1_VS_Multiplicity = TH2F("", "#psi1 VS Multiplicity;nHits;#psi1", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
+    fEcc2_VS_Multiplicity = TH2F("", "#epsilon2 VS Multiplicity;nHits;#epsilon2", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi2_VS_Multiplicity = TH2F("", "#psi2 VS Multiplicity;nHits;#psi2", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
+    fEcc3_VS_Multiplicity = TH2F("", "#epsilon3 VS Multiplicity;nHits;#epsilon3", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi3_VS_Multiplicity = TH2F("", "#psi3 VS Multiplicity;nHits;#psi3", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
+    fEcc4_VS_Multiplicity = TH2F("", "#epsilon4 VS Multiplicity;nHits;#epsilon4", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi4_VS_Multiplicity = TH2F("", "#psi4 VS Multiplicity;nHits;#psi4", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
+    fEcc5_VS_Multiplicity = TH2F("", "#epsilon5 VS Multiplicity;nHits;#epsilon5", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
+    fPsi5_VS_Multiplicity = TH2F("", "#psi5 VS Multiplicity;nHits;#psi5", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
     
     fGlauberFitHisto.SetName("glaub_fit_histo");
+    fB_VS_Multiplicity.SetName("B_VS_Multiplicity");
+    fNpart_VS_Multiplicity.SetName("Npart_VS_Multiplicity");
+    fNcoll_VS_Multiplicity.SetName("Ncoll_VS_Multiplicity");
+    fEcc1_VS_Multiplicity.SetName("Ecc1_VS_Multiplicity");
+    fPsi1_VS_Multiplicity.SetName("Psi1_VS_Multiplicity");
+    fEcc2_VS_Multiplicity.SetName("Ecc2_VS_Multiplicity");
+    fPsi2_VS_Multiplicity.SetName("Psi2_VS_Multiplicity");
+    fEcc3_VS_Multiplicity.SetName("Ecc3_VS_Multiplicity");
+    fPsi3_VS_Multiplicity.SetName("Psi3_VS_Multiplicity");
+    fEcc4_VS_Multiplicity.SetName("Ecc4_VS_Multiplicity");
+    fPsi4_VS_Multiplicity.SetName("Psi4_VS_Multiplicity");
+    fEcc5_VS_Multiplicity.SetName("Ecc5_VS_Multiplicity");
+    fPsi5_VS_Multiplicity.SetName("Psi5_VS_Multiplicity");
     
     SetNBDhist(mu,  k);
 
@@ -306,8 +319,6 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
 
     TFile* file {TFile::Open(filename, "recreate")};    
     TTree* tree {new TTree("test_tree", "tree" )};
-    
-    TH1F h1("h1", "", fNbins, 0, fMaxValue);
            
     float f, mu, k, chi2, chi2_error, sigma;
 
