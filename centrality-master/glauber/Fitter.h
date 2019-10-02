@@ -61,6 +61,8 @@ namespace Glauber
         void SetMode (const TString mode) { fMode = mode; }
 	void SetMassNumber (Float_t A) { fA = A; }
   void SetNiter(Int_t a) { fNiter = a; }
+  void SetFstepSize(Float_t a) { fFstep = a; }
+  void SetKstepSize(Int_t a) { fKstep = a; }
  
 //         
 //         Getters
@@ -134,6 +136,8 @@ namespace Glauber
         TH1F fGlauberFitHisto; 
         TH1F fBestFitHisto;
     Int_t fNiter;
+    Float_t fFstep;
+    Int_t fKstep;
 
 	TH2F fB_VS_Multiplicity;
 	TH2F fNpart_VS_Multiplicity;
