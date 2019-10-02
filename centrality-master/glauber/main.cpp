@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-		Float_t f0, f1;
-    Int_t   k0, k1, n_iter;
+		Float_t f0, f1, f_step;
+    Int_t   k0, k1, n_iter, k_step;
     Int_t   min_bin, max_bin;
     std::string input_glauber_file;
     std::string input_glauber_treename;
@@ -58,9 +58,13 @@ int main(int argc, char *argv[])
     str_name.push_back(str);
 		configfile >> str >> f1;
     str_name.push_back(str);
+		configfile >> str >> f_step;
+    str_name.push_back(str);
 		configfile >> str >> k0;
     str_name.push_back(str);
 		configfile >> str >> k1;
+    str_name.push_back(str);
+		configfile >> str >> k_step;
     str_name.push_back(str);
 		configfile >> str >> min_bin;
     str_name.push_back(str);
@@ -79,8 +83,10 @@ int main(int argc, char *argv[])
     std::cout << str_name.at(i_param++) << " " << n_iter << std::endl;
     std::cout << str_name.at(i_param++) << " " << f0 << std::endl;
     std::cout << str_name.at(i_param++) << " " << f1 << std::endl;
+    std::cout << str_name.at(i_param++) << " " << f_step << std::endl;
     std::cout << str_name.at(i_param++) << " " << k0 << std::endl;
     std::cout << str_name.at(i_param++) << " " << k1 << std::endl;
+    std::cout << str_name.at(i_param++) << " " << k_step << std::endl;
     std::cout << str_name.at(i_param++) << " " << min_bin << std::endl;
     std::cout << str_name.at(i_param++) << " " << max_bin << std::endl;
     std::cout << std::endl;
@@ -145,6 +151,8 @@ int main(int argc, char *argv[])
     fitter.SetFitMaxBin(max_bin);
     fitter.SetOutDirName(outdir);
     fitter.SetNiter(n_iter);
+    fitter.SetFstepSize(f_step);
+    fitter.SetKstepSize(k_step);
 
     float par[4];
 //    const float chi2 = fitter.FitGlauber(par, f0, f1, k0, k1, nevents);

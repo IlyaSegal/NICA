@@ -3,9 +3,11 @@ Glauber_treename: nt_Au3_Au3
 RefMult_file: /mnt/pool/nica/6/parfenovpeter/SimData/UrQMD/refMult/urqmd_7gev_500k.root
 RefMult_histname: hRefMultSTAR
 NumberOfIterations: 5
-f_min: 0.9
-f_max: 1
+f_min: 0.
+f_max: 1.
+f_step: 0.5
 k_min: 1
-k_max: 2
+k_max: 20
+k_step: 1
 Mult_min: 50
 Mult_max: 430

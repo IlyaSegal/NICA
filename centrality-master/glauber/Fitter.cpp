@@ -330,7 +330,7 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
     tree->Branch("sigma",&sigma,"sigma/F");   
 
     int n=1;
-    for (float i=f0; i<=f1; i=i+0.1000000)
+    for (float i=f0; i<=f1; i=i+fFstep)
     {
 	    f=i;
 	    for (int j=k0; j<=k1; j++)
