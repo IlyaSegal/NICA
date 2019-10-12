@@ -36,7 +36,7 @@ void Chi2(TString InFileName)
     std::vector <Float_t> y;
     std::vector <Float_t> z;
     
-    int X, Y;
+    float X, Y;
     for (Int_t i=0; i<n; i++)
     {
         tree->GetEntry(i);
@@ -47,7 +47,7 @@ void Chi2(TString InFileName)
         y.push_back(k);
         z.push_back(chi2);
 
-	if (chi2<chi2_min) {chi2_min=chi2; chi2_min_error=chi2_error; CHI2=chi2_min+chi2_min_error; f_min=f; mu_min=mu; k_min=k; X=f; Y=k;}
+	if (chi2<chi2_min) {chi2_min=chi2; chi2_min_error=chi2_error; CHI2=chi2_min+chi2_min_error; f_min=f; mu_min=mu; k_min=k; X=f_min; Y=k;}
     }
 
     
