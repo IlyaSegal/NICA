@@ -1,0 +1,33 @@
+Seed: 0
+EstimatorStepX: 0
+MinEstimatorX: 0
+MaxEstimatorX: 0
+MinFitRangeX: 0
+EstimatorStepY: 0
+MinEstimatorY: 0
+MaxEstimatorY: 0
+MinFitRangeY: 0
+kMin: 0.0
+kMax: 0.0
+kStep: 0.0
+fMin: 0.0
+fMax: 0.0
+fStep: 0.0
+YSigma: 0.0
+Glauber_filename:
+Glauber_treename:
+DataHisto_filename:
+DataHisto_name:
+OutDirName:
+OutFileIDName:
+Ancestor_Mode:
+Mode:
+HistoMode:
+Fit_Mode:
+nMuIter: 0
+AProj: 0
+ZProj: 0
+ATarg: 0
+ZTarg: 0
+EBeam: 0
+NEvents: 0

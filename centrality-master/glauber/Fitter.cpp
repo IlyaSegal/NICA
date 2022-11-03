@@ -7,138 +7,160 @@
 #include "TLegend.h"
 #include "TMath.h"
 #include "TRandom.h"
+#include <map>
 
 ClassImp(Glauber::Fitter)
 
-// -----   Default constructor   -------------------------------------------
-Glauber::Fitter::Fitter(std::unique_ptr<TTree> tree) 
+void Glauber::Fitter::Init(std::unique_ptr<TTree> tree)
 {
-    fSimTree = std::move(tree); 
-    std::cout << fSimTree->GetEntries() << std::endl;
+
+    fSimTree = std::move(tree);
     
-    if (!fSimTree) {
+    if (!fSimTree) 
+    {
         std::cout << "SetSimHistos: *** Error - " << std::endl;
         exit(EXIT_FAILURE);
     }
     
-    fSimTree->SetBranchAddress("B",  &fB);
-    fSimTree->SetBranchAddress("Npart",  &fNpart);
-    fSimTree->SetBranchAddress("Ncoll",  &fNcoll);
-    fSimTree->SetBranchAddress("Ecc1",  &fEcc1);
-    fSimTree->SetBranchAddress("Psi1",  &fPsi1);
-    fSimTree->SetBranchAddress("Ecc2",  &fEcc2);
-    fSimTree->SetBranchAddress("Psi2",  &fPsi2);
-    fSimTree->SetBranchAddress("Ecc3",  &fEcc3);
-    fSimTree->SetBranchAddress("Psi3",  &fPsi3);
-    fSimTree->SetBranchAddress("Ecc4",  &fEcc4);
-    fSimTree->SetBranchAddress("Psi4",  &fPsi4);
-    fSimTree->SetBranchAddress("Ecc5",  &fEcc5);
-    fSimTree->SetBranchAddress("Psi5",  &fPsi5);
-}
+    auto it0=Glauber_Parameters.begin();
+    for (int i=0; i<kGP; i++) 
+    {
+    	fSimTree->SetBranchAddress(it0->first,  &(it0->second)); 
+	    it0++;
+    }
 
-void Glauber::Fitter::Init(int nEntries, TString fmode)
-{
-
-    if ( nEntries < 0 || nEntries > fSimTree->GetEntries() ){
-        std::cout << "Init: *** ERROR - number of entries < 0 or less that number of entries in input tree" << std::endl;
+    if ( fnEvents < 0 || fnEvents > fSimTree->GetEntries() )
+    {
+        std::cout << "Init: *** ERROR - number of entries < 0 or more than number of entries in input tree" << std::endl;
         std::cout << "Init: *** number of entries in input tree = " << fSimTree->GetEntries() << std::endl;        
         exit(EXIT_FAILURE);
     }
 
-    const int BMax  = int (fSimTree->GetMaximum("B") );
-    const int NpartMax  = int (fSimTree->GetMaximum("Npart") );
-    const int NcollMax  = int (fSimTree->GetMaximum("Ncoll") );
+    it0=Glauber_Parameters.begin();
+    for (int i=0; i<kGP; i++) 
+    {
+	    Glauber_ParametersMax.insert( std::pair<TString, const int> ((it0->first), int (fSimTree->GetMaximum(it0->first))) );
+        Glauber_ParametersMin.insert( std::pair<TString, const int> ((it0->first), int (fSimTree->GetMinimum(it0->first))) );
+	    it0++;
+    }
     
-    const float Ecc1Min  =  fSimTree->GetMinimum("Ecc1");
-    const float Psi1Min  =  fSimTree->GetMinimum("Psi1");
-    const float Ecc2Min  =  fSimTree->GetMinimum("Ecc2");
-    const float Psi2Min  =  fSimTree->GetMinimum("Psi2");
-    const float Ecc3Min  =  fSimTree->GetMinimum("Ecc3");
-    const float Psi3Min  =  fSimTree->GetMinimum("Psi3");
-    const float Ecc4Min  =  fSimTree->GetMinimum("Ecc4");
-    const float Psi4Min  =  fSimTree->GetMinimum("Psi4");
-    const float Ecc5Min  =  fSimTree->GetMinimum("Ecc5");
-    const float Psi5Min  =  fSimTree->GetMinimum("Psi5");
-    const float Ecc1Max  =  fSimTree->GetMaximum("Ecc1");
-    const float Psi1Max  =  fSimTree->GetMaximum("Psi1");
-    const float Ecc2Max  =  fSimTree->GetMaximum("Ecc2");
-    const float Psi2Max  =  fSimTree->GetMaximum("Psi2");
-    const float Ecc3Max  =  fSimTree->GetMaximum("Ecc3");
-    const float Psi3Max  =  fSimTree->GetMaximum("Psi3");
-    const float Ecc4Max  =  fSimTree->GetMaximum("Ecc4");
-    const float Psi4Max  =  fSimTree->GetMaximum("Psi4");
-    const float Ecc5Max  =  fSimTree->GetMaximum("Ecc5");
-    const float Psi5Max  =  fSimTree->GetMaximum("Psi5");
-    
-    fBHisto      = TH1F ("fBHisto",  "B",  BMax/fBinSize,  0, BMax );
-    fNpartHisto  = TH1F ("fNpartHisto",  "Npart",  NpartMax/fBinSize,  0, NpartMax );
-    fNcollHisto  = TH1F ("fNcollHisto",  "Ncoll",  NcollMax/fBinSize,  0, NcollMax );
-    fEcc1Histo  = TH1F ("fEcc1Histo",  "#epsilon1",  (Ecc1Max-Ecc1Min)/0.01,  Ecc1Min, Ecc1Max );
-    fPsi1Histo  = TH1F ("fPsi1Histo",  "#psi1",  (Psi1Max-Psi1Min)/0.01,  Psi1Min, Psi1Max );
-    fEcc2Histo  = TH1F ("fEcc2Histo",  "#epsilon2",  (Ecc2Max-Ecc2Min)/0.01,  Ecc2Min, Ecc2Max );
-    fPsi2Histo  = TH1F ("fPsi2Histo",  "#psi2",  (Psi2Max-Psi2Min)/0.01,  Psi2Min, Psi2Max );
-    fEcc3Histo  = TH1F ("fEcc3Histo",  "#epsilon3",  (Ecc3Max-Ecc3Min)/0.01,  Ecc3Min, Ecc3Max );
-    fPsi3Histo  = TH1F ("fPsi3Histo",  "#psi3",  (Psi3Max-Psi3Min)/0.01,  Psi3Min, Psi3Max );
-    fEcc4Histo  = TH1F ("fEcc4Histo",  "#epsilon4",  (Ecc4Max-Ecc4Min)/0.01,  Ecc4Min, Ecc4Max );
-    fPsi4Histo  = TH1F ("fPsi4Histo",  "#psi4",  (Psi4Max-Psi4Min)/0.01,  Psi4Min, Psi4Max );
-    fEcc5Histo  = TH1F ("fEcc5Histo",  "#epsilon5",  (Ecc5Max-Ecc5Min)/0.01,  Ecc5Min, Ecc5Max );
-    fPsi5Histo  = TH1F ("fPsi5Histo",  "#psi5",  (Psi5Max-Psi5Min)/0.01,  Psi5Min, Psi5Max );
-    
-    for (int i=0; i<nEntries; i++)
-    	{
+    it0=Glauber_Parameters.begin();
+    auto it1=Glauber_ParametersMin.begin();
+    auto it2=Glauber_ParametersMax.begin();
+    for (int j=0; j<kGP; j++) 
+    {
+    	for (const auto & gGlauberParameter : gGlauberParameters) if (gGlauberParameter.name == it2->first) Glauber_Parameters_Histos.insert( std::pair<TString, TH1F*> ((it2->first), new TH1F (Form("%s_Histo", (gGlauberParameter.name).Data()), Form("%s;%s;counts", (gGlauberParameter.title).Data(), (gGlauberParameter.axis_title).Data()), 1.3*((it2->second)-(it1->second))/gGlauberParameter.bin_value, 1.3*it1->second, 1.3*it2->second)) );
+    	it1++;
+	    it2++;
+    }
+
+    it0=Glauber_Parameters.begin();
+    it1=Glauber_ParametersMin.begin();
+    it2=Glauber_ParametersMax.begin();		
+    auto it3=Glauber_Parameters_Histos.begin();
+    for (int i=0; i<fnEvents; i++)
+    {
        	fSimTree->GetEntry(i);
-        fBHisto.Fill(fB);
-       	fNcollHisto.Fill(fNcoll);
-       	fNpartHisto.Fill(fNpart);
-        fEcc1Histo.Fill(fEcc1);
-        fPsi1Histo.Fill(fPsi1);
-        fEcc2Histo.Fill(fEcc2);
-        fPsi2Histo.Fill(fPsi2);
-        fEcc3Histo.Fill(fEcc3);
-        fPsi3Histo.Fill(fPsi3);
-        fEcc4Histo.Fill(fEcc4);
-        fPsi4Histo.Fill(fPsi4);
-        fEcc5Histo.Fill(fEcc5);
-        fPsi5Histo.Fill(fPsi5);
-    	}
-    std::cout << fSimTree->GetEntries() << std::endl;
+	    it0=Glauber_Parameters.begin();
+	    it3=Glauber_Parameters_Histos.begin();
+	    for (int j=0; j<kGP; j++)
+	    {
+		    (it3->second)->Fill(it0->second);
+		    it0++;
+		    it3++;
+	    }
+    }
 
+    std::cout << "Entries in GlauberTree:" << fSimTree->GetEntries() << std::endl;
 
-    fNbins = fDataHisto.GetNbinsX();
+    if (fHistoMode == "1D") {
+        fNbins[0] = fDataHisto.GetNbinsX();
+        while (fDataHisto.GetBinContent(fNbins[0] - 1) == 0) fNbins[0]--;
+        fNbins[0]++;
+        const float min = fDataHisto.GetXaxis()->GetXmin();
+        const float max = fDataHisto.GetXaxis()->GetXmax();
+        fMaxValue[0] = min + (max - min) * fNbins[0] / fDataHisto.GetNbinsX();
 
-    while ( fDataHisto.GetBinContent(fNbins-1) == 0)
-        fNbins--;
-
-    fNbins++;
-
-    const float min = fDataHisto.GetXaxis()->GetXmin();
-    const float max = fDataHisto.GetXaxis()->GetXmax();
-
-    fMaxValue = min + (max - min)*fNbins/fDataHisto.GetNbinsX() ;
-
-    std::cout << "fNbins = " << fNbins << std::endl;
-    std::cout << "fMaxValue = " << fMaxValue << std::endl;
+        it0=Glauber_Parameters.begin();
+        it1=Glauber_ParametersMin.begin();
+        it2=Glauber_ParametersMax.begin();
+        it3=Glauber_Parameters_Histos.begin();
+        for (int j=0; j<kGP; j++)
+        {
+            for (const auto & gGlauberParameter : gGlauberParameters) if (gGlauberParameter.name == it2->first) Glauber_Parameters_VS_Estimator_Histos.insert( std::pair<TString, TH2F*> ((it2->first), new TH2F (Form("%s_VS_%s_Histo", (gGlauberParameter.name).Data(), fMode.Data()), Form("%s VS %s;%s;%s", (gGlauberParameter.title).Data(), fMode.Data(), fMode.Data(), (gGlauberParameter.axis_title).Data()), 1.3*fNbins[0], 0, 1.3*fMaxValue[0], 1.3*((it2->second)-(it1->second))/gGlauberParameter.bin_value, 1.3*it1->second, 1.3*it2->second)) );
+            it1++;
+            it2++;
+        }
+        it0=Glauber_Parameters.begin();
+        it1=Glauber_ParametersMin.begin();
+        it2=Glauber_ParametersMax.begin();
+        it3=Glauber_Parameters_Histos.begin();
+        for (int j=0; j<kGP; j++)
+        {
+            for (const auto & gGlauberParameter : gGlauberParameters) if (gGlauberParameter.name == it2->first) Glauber_Parameters_VS_Estimator_BestHistos.insert( std::pair<TString, TH2F*> ((it2->first), new TH2F (Form("%s_VS_%s_BestHisto", (gGlauberParameter.name).Data(), fMode.Data()), Form("%s VS %s;%s;%s", (gGlauberParameter.title).Data(), fMode.Data(), fMode.Data(), (gGlauberParameter.axis_title).Data()), 1.3*fNbins[0], 0, 1.3*fMaxValue[0], 1.3*((it2->second)-(it1->second))/gGlauberParameter.bin_value, 1.3*it1->second, 1.3*it2->second)) );
+            it1++;
+            it2++;
+        }
+        std::cout << "fNbins = " << fNbins[0] << std::endl;
+        std::cout << "fMaxValue = " << fMaxValue[0] << std::endl;
+    }
+    else if (fHistoMode == "2D") {
+        fNbins[0] = fDataHisto2D.GetNbinsX();
+        while (fDataHisto2D.GetBinContent(fNbins[0] - 1) == 0) fNbins[0]--;
+        fNbins[0]++;
+        const float min = fDataHisto2D.GetXaxis()->GetXmin();
+        const float max = fDataHisto2D.GetXaxis()->GetXmax();
+        fMaxValue[0] = min + (max - min) * fNbins[0] / fDataHisto2D.GetNbinsX();
+        fNbins[1] = fDataHisto2D.GetNbinsY();
+        fMaxValue[1] = fDataHisto2D.GetYaxis()->GetXmax();
+        it0=Glauber_Parameters.begin();
+        it1=Glauber_ParametersMin.begin();
+        it2=Glauber_ParametersMax.begin();
+        it3=Glauber_Parameters_Histos.begin();
+        for (int j=0; j<kGP; j++)
+        {
+            for (const auto & gGlauberParameter : gGlauberParameters) if (gGlauberParameter.name == it2->first) Glauber_Parameters_VS_Estimator_Histos3D.insert( std::pair<TString, TH3F*> ((it2->first), new TH3F (Form("%s_VS_%s_Histo", (gGlauberParameter.name).Data(), fMode.Data()), Form("%s VS %s;%s;<|Y-Y_{beam}|>;Energy", (gGlauberParameter.title).Data(), fMode.Data(), (gGlauberParameter.axis_title).Data()), 1.3*fNbins[0], 0, 1.3*fMaxValue[0], 1.3*fNbins[1], 0, 1.3*fMaxValue[1], 1.3*((it2->second)-(it1->second))/gGlauberParameter.bin_value, 1.3*it1->second, 1.3*it2->second)) );
+            it1++;
+            it2++;
+        }
+        it0=Glauber_Parameters.begin();
+        it1=Glauber_ParametersMin.begin();
+        it2=Glauber_ParametersMax.begin();
+        it3=Glauber_Parameters_Histos.begin();
+        for (int j=0; j<kGP; j++)
+        {
+            for (const auto & gGlauberParameter : gGlauberParameters) if (gGlauberParameter.name == it2->first) Glauber_Parameters_VS_Estimator_BestHistos3D.insert( std::pair<TString, TH3F*> ((it2->first), new TH3F (Form("%s_VS_%s_BestHisto", (gGlauberParameter.name).Data(), fMode.Data()), Form("%s VS %s;%s;<|Y-Y_{beam}|>;Energy", (gGlauberParameter.title).Data(), fMode.Data(), (gGlauberParameter.axis_title).Data()), 1.3*fNbins[0], 0, 1.3*fMaxValue[0], 1.3*fNbins[1], 0, 1.3*fMaxValue[1], 1.3*((it2->second)-(it1->second))/gGlauberParameter.bin_value, 1.3*it1->second, 1.3*it2->second)) );
+            it1++;
+            it2++;
+        }
+        std::cout << "fNbinsX = " << fNbins[0] << std::endl;
+        std::cout << "fMaxValueX = " << fMaxValue[0] << std::endl;
+        std::cout << "fNbinsY = " << fNbins[1] << std::endl;
+        std::cout << "fMaxValueY = " << fMaxValue[1] << std::endl;
+    }
 }
 
 float Glauber::Fitter::Nancestors(float f) const
 {
-    if       (fMode == "Default")    return f*fNpart + (1-f)*fNcoll;
-    else if  (fMode == "PSD")        return f-fNpart;
-    else if  (fMode == "Npart")      return TMath::Power(fNpart, f); 
-    else if  (fMode == "Ncoll")      return TMath::Power(fNcoll, f);
+    if       (fAncestor_Mode == "Default")    return f*Glauber_Parameters.at("Npart") + (1-f)*Glauber_Parameters.at("Ncoll");
+    else if  (fAncestor_Mode == "Nspec")      return f-Glauber_Parameters.at("Npart");
+    else if  (fAncestor_Mode == "NspecProj")  return f-Glauber_Parameters.at("NpartA");
+    else if  (fAncestor_Mode == "NspecTarg")  return f-Glauber_Parameters.at("NpartB");
+    else if  (fAncestor_Mode == "Npart")      return TMath::Power(Glauber_Parameters.at("Npart"), f); 
+    else if  (fAncestor_Mode == "Ncoll")      return TMath::Power(Glauber_Parameters.at("Ncoll"), f);
     
     return -1.;
 }
 
 float Glauber::Fitter::NancestorsMax(float f) const
 {
-    const int NpartMax = fNpartHisto.GetXaxis()->GetXmax() ;  // some magic
-    const int NcollMax = fNcollHisto.GetXaxis()->GetXmax() ; //TODO 
+    const int NpartMax = fSimTree->GetMaximum("Npart");  // some magic
+    const int NcollMax = fSimTree->GetMaximum("Ncoll");
     
-    if       (fMode == "Default")    return f*NpartMax + (1-f)*NcollMax;
-    else if  (fMode == "PSD")        return f;
-    else if  (fMode == "Npart")      return TMath::Power(NpartMax, f); 
-    else if  (fMode == "Ncoll")      return TMath::Power(NcollMax, f);
+    if       (fAncestor_Mode == "Default")    return f*NpartMax + (1-f)*NcollMax;
+    else if  (fAncestor_Mode == "Nspec" || fAncestor_Mode == "NspecProj" || fAncestor_Mode == "NspecTarg")        return f;
+    else if  (fAncestor_Mode == "Npart")      return TMath::Power(NpartMax, f); 
+    else if  (fAncestor_Mode == "Ncoll")      return TMath::Power(NcollMax, f);
     
     return -1.;
 }
@@ -148,63 +170,68 @@ float Glauber::Fitter::NancestorsMax(float f) const
  * Populate fGlauberFitHisto with NBD x Na
  */
 
-void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, int n, Bool_t Norm2Data)
-{    
-    fGlauberFitHisto = TH1F("glaub", "", fNbins*1.3, 0, 1.3*fMaxValue);
-    fB_VS_Multiplicity = TH2F("", "B VS Multiplicity;nHits;B, fm", fNbins*1.3, 0, 1.3*fMaxValue, 200, 0, 20);
-    fNpart_VS_Multiplicity = TH2F("", "N_{part} VS Multiplicity;nHits;N_{part}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
-    fNcoll_VS_Multiplicity = TH2F("", "N_{coll} VS Multiplicity;nHits;N_{coll}", fNbins*1.3, 0, 1.3*fMaxValue, 10000, 0, 10000);
-    fEcc1_VS_Multiplicity = TH2F("", "#epsilon1 VS Multiplicity;nHits;#epsilon1", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi1_VS_Multiplicity = TH2F("", "#psi1 VS Multiplicity;nHits;#psi1", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
-    fEcc2_VS_Multiplicity = TH2F("", "#epsilon2 VS Multiplicity;nHits;#epsilon2", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi2_VS_Multiplicity = TH2F("", "#psi2 VS Multiplicity;nHits;#psi2", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
-    fEcc3_VS_Multiplicity = TH2F("", "#epsilon3 VS Multiplicity;nHits;#epsilon3", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi3_VS_Multiplicity = TH2F("", "#psi3 VS Multiplicity;nHits;#psi3", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
-    fEcc4_VS_Multiplicity = TH2F("", "#epsilon4 VS Multiplicity;nHits;#epsilon4", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi4_VS_Multiplicity = TH2F("", "#psi4 VS Multiplicity;nHits;#psi4", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
-    fEcc5_VS_Multiplicity = TH2F("", "#epsilon5 VS Multiplicity;nHits;#epsilon5", fNbins*1.3, 0, 1.3*fMaxValue, 100, 0, 1);
-    fPsi5_VS_Multiplicity = TH2F("", "#psi5 VS Multiplicity;nHits;#psi5", fNbins*1.3, 0, 1.3*fMaxValue, 2*3.14/0.01, 0, 2*3.14);
-    
-    fGlauberFitHisto.SetName("glaub_fit_histo");
-    fB_VS_Multiplicity.SetName("B_VS_Multiplicity");
-    fNpart_VS_Multiplicity.SetName("Npart_VS_Multiplicity");
-    fNcoll_VS_Multiplicity.SetName("Ncoll_VS_Multiplicity");
-    fEcc1_VS_Multiplicity.SetName("Ecc1_VS_Multiplicity");
-    fPsi1_VS_Multiplicity.SetName("Psi1_VS_Multiplicity");
-    fEcc2_VS_Multiplicity.SetName("Ecc2_VS_Multiplicity");
-    fPsi2_VS_Multiplicity.SetName("Psi2_VS_Multiplicity");
-    fEcc3_VS_Multiplicity.SetName("Ecc3_VS_Multiplicity");
-    fPsi3_VS_Multiplicity.SetName("Psi3_VS_Multiplicity");
-    fEcc4_VS_Multiplicity.SetName("Ecc4_VS_Multiplicity");
-    fPsi4_VS_Multiplicity.SetName("Psi4_VS_Multiplicity");
-    fEcc5_VS_Multiplicity.SetName("Ecc5_VS_Multiplicity");
-    fPsi5_VS_Multiplicity.SetName("Psi5_VS_Multiplicity");
-    
-    SetNBDhist(mu,  k);
+void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, Bool_t Norm2Data)
+{
+    if (fHistoMode == "1D") {
+        fGlauberFitHisto = TH1F("glaub", "", fNbins[0] * 1.3, 0, 1.3 * fMaxValue[0]);
+        fGlauberFitHisto.SetName("glaub_fit_histo");
+        if (fMode == "Multiplicity") SetNBDhist(mu, k);
+    }
+    else if (fHistoMode == "2D") {
+        fGlauberFitHisto2D = TH2F("glaub", "", fNbins[0] * 1.3, 0, 1.3 * fMaxValue[0], fNbins[1] * 1.3, 0, 1.3 * fMaxValue[1]);
+        fGlauberFitHisto2D.SetName("glaub_fit_histo");
+    }
 
-    std::unique_ptr<TH1F> htemp {(TH1F*)fNbdHisto.Clone("htemp")}; // WTF??? Not working without pointer
-    for (int i=0; i<n; i++)
+    TH1F fAncestHisto = TH1F("ancest", "", fNbins[0] * 1.3, 0, 1.3 * fMaxValue[0]);
+
+    for (int i=0; i<fnEvents; i++)
     {
         fSimTree->GetEntry(i);
         const int Na = int(Nancestors(f));
-                
-        float nHits {0.};
-        for (int j=0; j<Na; j++) nHits += int(htemp->GetRandom());
-        fGlauberFitHisto.Fill(nHits);
-        fB_VS_Multiplicity.Fill(nHits,fB);
-        fNpart_VS_Multiplicity.Fill(nHits,fNpart);
-        fNcoll_VS_Multiplicity.Fill(nHits,fNcoll);
-        fEcc1_VS_Multiplicity.Fill(nHits,fEcc1);
-        fPsi1_VS_Multiplicity.Fill(nHits,fPsi1);
-        fEcc2_VS_Multiplicity.Fill(nHits,fEcc2);
-        fPsi2_VS_Multiplicity.Fill(nHits,fPsi2);
-        fEcc3_VS_Multiplicity.Fill(nHits,fEcc3);
-        fPsi3_VS_Multiplicity.Fill(nHits,fPsi3);
-        fEcc4_VS_Multiplicity.Fill(nHits,fEcc4);
-        fPsi4_VS_Multiplicity.Fill(nHits,fPsi4);
-        fEcc5_VS_Multiplicity.Fill(nHits,fEcc5);
-        fPsi5_VS_Multiplicity.Fill(nHits,fPsi5);
+        fAncestHisto.Fill(Na);
+        float nEstimatorX {0.};
+        float nEstimatorY {0.};
+
+        if (fMode == "Multiplicity" || fMode == "Energy") {
+            for (int j = 0; j < Na; j++) {
+                if (fMode == "Multiplicity") nEstimatorX += int(fSampleHisto.GetRandom());
+                else if (fMode == "Energy") {
+                        float E = gRandom->Gaus(mu, k);
+                        if (E<0) E=0;
+                        nEstimatorX += E;
+                }
+            }
+            fGlauberFitHisto.Fill(nEstimatorX);
+            auto it1 = Glauber_Parameters.begin();
+            auto it2 = Glauber_Parameters_VS_Estimator_Histos.begin();
+            for (int q = 0; q < kGP; q++) {
+                (it2->second)->Fill(nEstimatorX, it1->second);
+                it1++;
+                it2++;
+            }
+        }
+        else if (fMode == "RapidityVSEnergy") {
+            float fE;
+            for (int j = 0; j < Na; j++) {
+                fE = gRandom->Gaus(mu, k);
+                nEstimatorX += fE;
+                nEstimatorY += TMath::Abs(gRandom->Gaus(0, fYSigma/fE));
+            }
+            nEstimatorY = nEstimatorY / Na;
+            fGlauberFitHisto2D.Fill(nEstimatorX, nEstimatorY);
+            auto it1 = Glauber_Parameters.begin();
+            auto it2 = Glauber_Parameters_VS_Estimator_Histos3D.begin();
+            for (int q = 0; q < kGP; q++) {
+                (it2->second)->Fill(nEstimatorX, nEstimatorY, it1->second);
+                it1++;
+                it2++;
+            }
+        }
     }
+
+    fAncestHisto.SetName(Form("ancest_f%f_mu%f_k%f", f, mu, k));
+    fAncestHisto.Write();
+
     if (Norm2Data)
         NormalizeGlauberFit();
 }
@@ -215,20 +242,30 @@ void Glauber::Fitter::NormalizeGlauberFit ()
     
     int fGlauberFitHistoInt {0}; 
     int fDataHistoInt {0};
+    float ScaleFactor;
     
-    const int lowchibin = fFitMinBin;
-    const int highchibin = fFitMaxBin<fNbins ? fFitMaxBin : fNbins;
-    
-    for (int i=lowchibin; i<highchibin; i++)
-    {
-        fGlauberFitHistoInt += fGlauberFitHisto.GetBinContent(i+1);
-        fDataHistoInt += fDataHisto.GetBinContent(i+1);
-    }
+    const int lowchibinX = fFitMinBin[0];
+    const int highchibinX = fFitMaxBin[0]<fNbins[0] ? fFitMaxBin[0] : fNbins[0];
 
-    const float ScaleFactor = (float)fDataHistoInt/fGlauberFitHistoInt;
-    
-//     std::cout << "Scale = " << Scale << std::endl;
-    fGlauberFitHisto.Scale(ScaleFactor);    
+    if (fHistoMode == "1D") {
+        for (int i = lowchibinX; i < highchibinX; i++) {
+            fGlauberFitHistoInt += fGlauberFitHisto.GetBinContent(i + 1);
+            fDataHistoInt += fDataHisto.GetBinContent(i + 1);
+        }
+        ScaleFactor = (float) fDataHistoInt / fGlauberFitHistoInt;
+        fGlauberFitHisto.Scale(ScaleFactor);
+    }
+    else if (fHistoMode == "2D") {
+        const int lowchibinY = fFitMinBin[1];
+        const int highchibinY = fFitMaxBin[1]<fNbins[1] ? fFitMaxBin[1] : fNbins[1];
+        for (int i = lowchibinX; i < highchibinX; i++)
+            for (int j = lowchibinY; j < highchibinY; j++) {
+                fGlauberFitHistoInt += fGlauberFitHisto2D.GetBinContent(i + 1, j + 1);
+                fDataHistoInt += fDataHisto2D.GetBinContent(i + 1, j + 1);
+            }
+        ScaleFactor = (float) fDataHistoInt / fGlauberFitHistoInt;
+        fGlauberFitHisto2D.Scale(ScaleFactor);
+    }
 }
 
 /**
@@ -239,28 +276,97 @@ void Glauber::Fitter::NormalizeGlauberFit ()
  * @param mu_max upper search edge for mean value NBD
  * @param f parameter of Na
  * @param k NBD parameter
- * @param nEvents
- * @param nIter
  */
-void Glauber::Fitter::FindMuGoldenSection (float *mu, float *chi2, float*chi2_error, float mu_min, float mu_max, float f, float k, int nEvents, int nIter, int n)
+void Glauber::Fitter::FindMuGoldenSection (TTree *tree, float *mu, float *chi2, float*chi2_error, int *n, float *sigma, float mu_min, float mu_max, float f, float k )
 {
-    const float phi {(1+TMath::Sqrt(5))/2};
+    double phi {(1+TMath::Sqrt(5))/2};
 
     /* left */
     float mu_1 = mu_max - (mu_max-mu_min)/phi;
 
     /* right */
     float mu_2 = mu_min + (mu_max-mu_min)/phi;
+
+    float chi2_mu1, chi2_mu2;
+    float chi2_mu1_error, chi2_mu2_error;
     
-    SetGlauberFitHisto (f, mu_1, k, nEvents);
-    float chi2_mu1 = GetChi2 ();
-    float chi2_mu1_error = GetChi2Error ();
+    SetGlauberFitHisto (f, mu_1, k);
+    fSampleHisto.SetName(Form("nbd_f%f_mu%f_k%f", f, mu_1, k));
+    fSampleHisto.Write();
+    fGlauberFitHisto.SetName(Form("mult_f%f_mu%f_k%f", f, mu_1, k));
+    fGlauberFitHisto.Write();
+    *sigma = ( (mu_1)/k + 1 ) * (mu_1);
+    for (int fRangeX = fMinFitRange[0]; fRangeX <= (fMaxEstimator[0]-fMinEstimator[0]); fRangeX = fRangeX + fEstimatorStep[0])
+        for (int fRangeCenterX = 2*fMinEstimator[0]+fRangeX; fRangeCenterX <= (2*fMaxEstimator[0]-fRangeX); fRangeCenterX = fRangeCenterX + 2*fEstimatorStep[0]) {
+            fFitMinBin[0] = (fRangeCenterX - fRangeX)/2;
+            fFitMaxBin[0] = (fRangeCenterX + fRangeX)/2;
+            if (fHistoMode != "2D") {
+                fMinFitRange[1] = 0;
+                fMaxEstimator[1] = 0;
+                fMinEstimator[1] = 0;
+                fEstimatorStep[1]= 1;
+            }
+            for (int fRangeY = fMinFitRange[1]; fRangeY <= (fMaxEstimator[1]-fMinEstimator[1]); fRangeY = fRangeY + fEstimatorStep[1])
+                for (int fRangeCenterY = 2*fMinEstimator[1]+fRangeY; fRangeCenterY <= (2*fMaxEstimator[1]-fRangeY); fRangeCenterY = fRangeCenterY + 2*fEstimatorStep[1]) {
+                    fFitMinBin[1] = (fRangeCenterY - fRangeY) / 2;
+                    fFitMaxBin[1] = (fRangeCenterY + fRangeY) / 2;
+                    NormalizeGlauberFit();
+                    chi2_mu1 = GetChi2();
+                    chi2_mu1_error = GetChi2Error();
+                    *mu = mu_1;
+                    *chi2 = chi2_mu1;
+                    *chi2_error = chi2_mu1_error;
+                    tree->Fill();
+                    if (fHistoMode == "1D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                            << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                            << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                    else if (fHistoMode == "2D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                            << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                            << " FitMinBinY = " << fFitMinBin[1] << " FitMaxBinY = " << fFitMaxBin[1]
+                                            << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                    *n = *n + 1;
+                }
+        }
+
+    SetGlauberFitHisto (f, mu_2, k);
+    fSampleHisto.SetName(Form("nbd_f%f_mu%f_k%f", f, mu_2, k));
+    fSampleHisto.Write();
+    fGlauberFitHisto.SetName(Form("mult_f%f_mu%f_k%f", f, mu_2, k));
+    fGlauberFitHisto.Write();
+    *sigma = ( (mu_2)/k + 1 ) * (mu_2);
+    for (int fRangeX = fMinFitRange[0]; fRangeX <= (fMaxEstimator[0]-fMinEstimator[0]); fRangeX = fRangeX + fEstimatorStep[0])
+        for (int fRangeCenterX = 2*fMinEstimator[0]+fRangeX; fRangeCenterX <= (2*fMaxEstimator[0]-fRangeX); fRangeCenterX = fRangeCenterX + 2*fEstimatorStep[0]) {
+            fFitMinBin[0] = (fRangeCenterX - fRangeX)/2;
+            fFitMaxBin[0] = (fRangeCenterX + fRangeX)/2;
+            if (fHistoMode != "2D") {
+                fMinFitRange[1] = 0;
+                fMaxEstimator[1] = 0;
+                fMinEstimator[1] = 0;
+                fEstimatorStep[1]= 1;
+            }
+            for (int fRangeY = fMinFitRange[1]; fRangeY <= (fMaxEstimator[1]-fMinEstimator[1]); fRangeY = fRangeY + fEstimatorStep[1])
+                for (int fRangeCenterY = 2*fMinEstimator[1]+fRangeY; fRangeCenterY <= (2*fMaxEstimator[1]-fRangeY); fRangeCenterY = fRangeCenterY + 2*fEstimatorStep[1]) {
+                    fFitMinBin[1] = (fRangeCenterY - fRangeY) / 2;
+                    fFitMaxBin[1] = (fRangeCenterY + fRangeY) / 2;
+                    NormalizeGlauberFit();
+                    chi2_mu2 = GetChi2();
+                    chi2_mu2_error = GetChi2Error();
+                    *mu = mu_2;
+                    *chi2 = chi2_mu2;
+                    *chi2_error = chi2_mu2_error;
+                    tree->Fill();
+                    if (fHistoMode == "1D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                                      << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                      << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                    else if (fHistoMode == "2D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                                           << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                           << " FitMinBinY = " << fFitMinBin[1] << " FitMaxBinY = " << fFitMaxBin[1]
+                                                           << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                    *n = *n + 1;
+                }
+        }
     
-    SetGlauberFitHisto (f, mu_2, k, nEvents);
-    float chi2_mu2 = GetChi2 ();
-    float chi2_mu2_error = GetChi2Error ();
-    
-    for (int j=0; j<nIter; j++)
+    for (int j=0; j<fnMuIter; j++)
     {        
         if (chi2_mu1 > chi2_mu2)
         {
@@ -268,9 +374,44 @@ void Glauber::Fitter::FindMuGoldenSection (float *mu, float *chi2, float*chi2_er
             mu_1 = mu_2;
             mu_2 = mu_min + (mu_max-mu_min)/phi;
             chi2_mu1 = chi2_mu2;
-            SetGlauberFitHisto (f, mu_2, k, nEvents);
-            chi2_mu2 = GetChi2 ();
-	    chi2_mu2_error = GetChi2Error ();
+            SetGlauberFitHisto (f, mu_2, k);
+            fSampleHisto.SetName(Form("nbd_f%f_mu%f_k%f", f, mu_2, k));
+            fSampleHisto.Write();
+            fGlauberFitHisto.SetName(Form("mult_f%f_mu%f_k%f", f, mu_2, k));
+            fGlauberFitHisto.Write();
+            *sigma = ( (mu_2)/k + 1 ) * (mu_2);
+            for (int fRangeX = fMinFitRange[0]; fRangeX <= (fMaxEstimator[0]-fMinEstimator[0]); fRangeX = fRangeX + fEstimatorStep[0])
+                for (int fRangeCenterX = 2*fMinEstimator[0]+fRangeX; fRangeCenterX <= (2*fMaxEstimator[0]-fRangeX); fRangeCenterX = fRangeCenterX + 2*fEstimatorStep[0]) {
+                    fFitMinBin[0] = (fRangeCenterX - fRangeX)/2;
+                    fFitMaxBin[0] = (fRangeCenterX + fRangeX)/2;
+                    if (fHistoMode != "2D") {
+                        fMinFitRange[1] = 0;
+                        fMaxEstimator[1] = 0;
+                        fMinEstimator[1] = 0;
+                        fEstimatorStep[1]= 1;
+                    }
+                    for (int fRangeY = fMinFitRange[1]; fRangeY <= (fMaxEstimator[1]-fMinEstimator[1]); fRangeY = fRangeY + fEstimatorStep[1])
+                        for (int fRangeCenterY = 2*fMinEstimator[1]+fRangeY; fRangeCenterY <= (2*fMaxEstimator[1]-fRangeY); fRangeCenterY = fRangeCenterY + 2*fEstimatorStep[1]) {
+                            fFitMinBin[1] = (fRangeCenterY - fRangeY) / 2;
+                            fFitMaxBin[1] = (fRangeCenterY + fRangeY) / 2;
+                            NormalizeGlauberFit();
+                            chi2_mu2 = GetChi2();
+                            chi2_mu2_error = GetChi2Error();
+                            *mu = mu_2;
+                            *chi2 = chi2_mu2;
+                            *chi2_error = chi2_mu2_error;
+                            tree->Fill();
+                            if (fHistoMode == "1D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                                              << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                              << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                            else if (fHistoMode == "2D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                                                   << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                                   << " FitMinBinY = " << fFitMinBin[1] << " FitMaxBinY = " << fFitMaxBin[1]
+                                                                   << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                            *n = *n + 1;
+                        }
+                }
+
         }
         else
         {
@@ -278,12 +419,44 @@ void Glauber::Fitter::FindMuGoldenSection (float *mu, float *chi2, float*chi2_er
             mu_2 = mu_1;
             mu_1 = mu_max - (mu_max-mu_min)/phi; 
             chi2_mu2 = chi2_mu1;
-            SetGlauberFitHisto (f, mu_1, k, nEvents);
-            chi2_mu1 = GetChi2 (); 
-  	    chi2_mu1_error = GetChi2Error ();           
+            SetGlauberFitHisto (f, mu_1, k);
+            fSampleHisto.SetName(Form("nbd_f%f_mu%f_k%f", f, mu_1, k));
+            fSampleHisto.Write();
+            fGlauberFitHisto.SetName(Form("mult_f%f_mu%f_k%f", f, mu_1, k));
+            fGlauberFitHisto.Write();
+            *sigma = ( (mu_1)/k + 1 ) * (mu_1);
+            for (int fRangeX = fMinFitRange[0]; fRangeX <= (fMaxEstimator[0]-fMinEstimator[0]); fRangeX = fRangeX + fEstimatorStep[0])
+                for (int fRangeCenterX = 2*fMinEstimator[0]+fRangeX; fRangeCenterX <= (2*fMaxEstimator[0]-fRangeX); fRangeCenterX = fRangeCenterX + 2*fEstimatorStep[0]) {
+                    fFitMinBin[0] = (fRangeCenterX - fRangeX)/2;
+                    fFitMaxBin[0] = (fRangeCenterX + fRangeX)/2;
+                    if (fHistoMode != "2D") {
+                        fMinFitRange[1] = 0;
+                        fMaxEstimator[1] = 0;
+                        fMinEstimator[1] = 0;
+                        fEstimatorStep[1]= 1;
+                    }
+                    for (int fRangeY = fMinFitRange[1]; fRangeY <= (fMaxEstimator[1]-fMinEstimator[1]); fRangeY = fRangeY + fEstimatorStep[1])
+                        for (int fRangeCenterY = 2*fMinEstimator[1]+fRangeY; fRangeCenterY <= (2*fMaxEstimator[1]-fRangeY); fRangeCenterY = fRangeCenterY + 2*fEstimatorStep[1]) {
+                            fFitMinBin[1] = (fRangeCenterY - fRangeY)/2;
+                            fFitMaxBin[1] = (fRangeCenterY + fRangeY)/2;
+                            NormalizeGlauberFit();
+                            chi2_mu1 = GetChi2();
+                            chi2_mu1_error = GetChi2Error();
+                            *mu = mu_1;
+                            *chi2 = chi2_mu1;
+                            *chi2_error = chi2_mu1_error;
+                            tree->Fill();
+                            if (fHistoMode == "1D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                                              << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                              << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                            else if (fHistoMode == "2D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << (*mu)
+                                                                   << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                                   << " FitMinBinY = " << fFitMinBin[1] << " FitMaxBinY = " << fFitMaxBin[1]
+                                                                   << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                            *n = *n + 1;
+                        }
+                }
         }
-        
-        std::cout << "n = " << n+j << " f = "  << f << " k = " << k << " mu1 = " << mu_1 << " mu2 = " << mu_2 << " chi2_mu1 = " << chi2_mu1  << " chi2_mu2 = " << chi2_mu2 << std::endl;
     }
 
     /* take min(mu) */
@@ -295,16 +468,61 @@ void Glauber::Fitter::FindMuGoldenSection (float *mu, float *chi2, float*chi2_er
 }
 
 /**
+ *
+ * @param mu mean value of negative binominal distribution (we are looking for it)
+ * @param chi2 return value (indicates good match)
+ * @param mu_min lower search edge for mean value NBD
+ * @param mu_max upper search edge for mean value NBD
+ * @param f parameter of Na
+ * @param k NBD parameter
+ */
+void Glauber::Fitter::FindMuIteration (TTree *tree, float mu, float *chi2, float *chi2_error, int *n, float *sigma, float f, float k)
+{
+    float chi2_best=1e10, chi2_error_best=1e10;
+    SetGlauberFitHisto (f, mu, k);
+    *sigma = ( mu/k + 1 ) * mu;
+    for (int fRangeX = fMinFitRange[0]; fRangeX <= (fMaxEstimator[0]-fMinEstimator[0]); fRangeX = fRangeX + fEstimatorStep[0])
+        for (int fRangeCenterX = 2*fMinEstimator[0]+fRangeX; fRangeCenterX <= (2*fMaxEstimator[0]-fRangeX); fRangeCenterX = fRangeCenterX + 2*fEstimatorStep[0]) {
+            fFitMinBin[0] = (fRangeCenterX - fRangeX)/2;
+            fFitMaxBin[0] = (fRangeCenterX + fRangeX)/2;
+            if (fHistoMode != "2D") {
+                fMinFitRange[1] = 0;
+                fMaxEstimator[1] = 0;
+                fMinEstimator[1] = 0;
+                fEstimatorStep[1]= 1;
+            }
+            for (int fRangeY = fMinFitRange[1]; fRangeY <= (fMaxEstimator[1]-fMinEstimator[1]); fRangeY = fRangeY + fEstimatorStep[1])
+                for (int fRangeCenterY = 2*fMinEstimator[1]+fRangeY; fRangeCenterY <= (2*fMaxEstimator[1]-fRangeY); fRangeCenterY = fRangeCenterY + 2*fEstimatorStep[1]) {
+                    fFitMinBin[1] = (fRangeCenterY - fRangeY) / 2;
+                    fFitMaxBin[1] = (fRangeCenterY + fRangeY) / 2;
+                    NormalizeGlauberFit();
+                    *chi2 = GetChi2();
+                    *chi2_error = GetChi2Error();
+                    tree->Fill();
+                    if (fHistoMode == "1D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << mu
+                                                      << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                      << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                    else if (fHistoMode == "2D") std::cout << "n = " << (*n) << " f = " << f << " k = " << k << " mu = " << mu
+                                                           << " FitMinBinX = " << fFitMinBin[0] << " FitMaxBinX = " << fFitMaxBin[0]
+                                                           << " FitMinBinY = " << fFitMinBin[1] << " FitMaxBinY = " << fFitMaxBin[1]
+                                                           << " chi2 = " << (*chi2) << " chi2_error = " << (*chi2_error) << std::endl;
+                    *n = *n + 1;
+                    if ((*chi2) < chi2_best) { chi2_best=(*chi2); chi2_error_best=(*chi2_error); }
+                }
+        }
+    
+    /* take min(chi2) */
+    *chi2 = chi2_best;
+    /* take min(chi2_error) */
+    *chi2_error = chi2_error_best;
+}
+
+/**
  * Find the best match
  *
  * @param return value of best fit parameters
- * @param f0 lower search edge for parameter of Na, for which chi2 will be calculated
- * @param f1 upper search edge for parameter of Na, for which chi2 will be calculated
- * @param k0 lower search edge for NBD parameter
- * @param k1 upper search edge for NBD parameter
- * @param nEvents
  */
-float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0, Int_t k1, Int_t nEvents)
+float Glauber::Fitter::FitGlauber (float *par)
 {
     float f_fit{-1};
     float mu_fit{-1}; 
@@ -312,64 +530,92 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
     float Chi2Min {1e10};
     float Chi2Min_error {0};
 
-    const TString filename = Form ( "%s/fit_%4.2f_%d_%d_%d.root", fOutDirName.Data(), f0, k0, k1, fFitMinBin );
-    
-//     std::unique_ptr<TFile> file {TFile::Open(filename, "recreate")};    
-//     std::unique_ptr<TTree> tree {new TTree("test_tree", "tree" )};
+    const TString filename = Form ( "%s/fit%s.root", fOutDirName.Data(), fOutFileIDName.Data() );
 
     TFile* file {TFile::Open(filename, "recreate")};    
     TTree* tree {new TTree("test_tree", "tree" )};
            
     float f, mu, k, chi2, chi2_error, sigma;
-
-    tree->Branch("f",    &f,    "f/F");   
-    tree->Branch("mu",   &mu,   "mu/F");   
-    tree->Branch("k",    &k,    "k/F");   
+    int n=1;
+    
+    tree->Branch("n",    &n, "n/I");
+    tree->Branch("MinBin",    &fFitMinBin, "fFitMinBin/I");
+    tree->Branch("MaxBin",    &fFitMaxBin, "fFitMaxBin/I");
+    tree->Branch("f",    &f, "f/F");
+    tree->Branch("mu",   &mu, "mu/F");
+    tree->Branch("k",    &k, "k/F");
     tree->Branch("chi2", &chi2, "chi2/F");
     tree->Branch("chi2_error", &chi2_error, "chi2_error/F");
-    tree->Branch("sigma",&sigma,"sigma/F");   
+    tree->Branch("sigma",&sigma, "sigma/F");
 
-    int n=1;
-    for (float i=f0; i<=f1; i=i+fFstep)
+    fFitMinBin[0] = fMinEstimator[0];
+    fFitMaxBin[0] = fMaxEstimator[0];
+    fFitMinBin[1] = fMinEstimator[1];
+    fFitMaxBin[1] = fMaxEstimator[1];
+
+    if ((fMode == "Energy" || fMode == "RapidityVSEnergy") && (fAncestor_Mode != "Nspec" && fAncestor_Mode != "NspecProj" && fAncestor_Mode != "NspecTarg")) fAncestor_Mode = "Nspec";
+    if (fAncestor_Mode == "Nspec") {
+        f_fMin = fAProj + fATarg;
+        f_fMax = f_fMin;
+        f_fStep = 1;
+    }
+    else if (fAncestor_Mode == "NspecProj") {
+        f_fMin = fAProj;
+        f_fMax = f_fMin;
+        f_fStep = 1;
+    }
+    else if (fAncestor_Mode == "NspecTarg") {
+        f_fMin = fATarg;
+        f_fMax = f_fMin;
+        f_fStep = 1;
+    }
+
+    for (float i=f_fMin; i<=f_fMax; i=i+f_fStep)
     {
-	    f=i;
-	    for (int j=k0; j<=k1; j++)
+	    f = i;
+	    for (float j=f_kMin; j<=f_kMax; j=j+f_kStep)
 	    {
-		mu = fMaxValue / NancestorsMax(f) ;
-		k = j;
-		const float mu_min = 0.7*mu;
-		const float mu_max = 1.0*mu;
+            if (fMode == "Multiplicity") mu = fMaxValue[0] / NancestorsMax(f);
+            else if (fMode == "Energy" || fMode == "RapidityVSEnergy") mu = fEBeam;
+		    k = j;
+		    const float mu_min = f_MuMinPercentage*mu;
+		    const float mu_max = f_MuMaxPercentage*mu;
 
-    if (fNiter == 0) fNiter = 2;
+		    if (fFit_Mode == "GoldenSection")  FindMuGoldenSection (tree, &mu, &chi2, &chi2_error, &n, &sigma, mu_min, mu_max, f, k);
+            else if (fFit_Mode == "Iteration") for (mu=mu_min; mu<=mu_max; mu=mu+f_muStep) FindMuIteration (tree, mu, &chi2, &chi2_error, &n, &sigma, f, k);
+            else std::cout << "ERROR: ILLIGAL MU FINDING MODE" << std::endl;
+		
+		    if (chi2 < Chi2Min)
+		    {
+		        f_fit = f;
+		        mu_fit = mu;
+		        k_fit = k;
+		        Chi2Min = chi2;
+		        Chi2Min_error = chi2_error;
 
-		FindMuGoldenSection (&mu, &chi2, &chi2_error, mu_min, mu_max, f, k, nEvents, fNiter, n);
-		n=n+fNiter;
-		sigma = ( mu/k + 1 ) * mu;
-		
-		tree->Fill();
-		
-		if (chi2 < Chi2Min)
-		{
-		    f_fit = f;
-		    mu_fit = mu;
-		    k_fit = k;
-		    Chi2Min = chi2;
-		    Chi2Min_error = chi2_error;
-		    fBestFitHisto = fGlauberFitHisto;
-		    fBestB_VS_Multiplicity=fB_VS_Multiplicity;
-	 	    fBestNpart_VS_Multiplicity=fNpart_VS_Multiplicity;
-	 	    fBestNcoll_VS_Multiplicity=fNcoll_VS_Multiplicity;
-            fBestEcc1_VS_Multiplicity=fEcc1_VS_Multiplicity;
-            fBestPsi1_VS_Multiplicity=fPsi1_VS_Multiplicity;
-            fBestEcc2_VS_Multiplicity=fEcc2_VS_Multiplicity;
-            fBestPsi2_VS_Multiplicity=fPsi2_VS_Multiplicity;
-            fBestEcc3_VS_Multiplicity=fEcc3_VS_Multiplicity;
-            fBestPsi3_VS_Multiplicity=fPsi3_VS_Multiplicity;
-            fBestEcc4_VS_Multiplicity=fEcc4_VS_Multiplicity;
-            fBestPsi4_VS_Multiplicity=fPsi4_VS_Multiplicity;
-            fBestEcc5_VS_Multiplicity=fEcc5_VS_Multiplicity;
-            fBestPsi5_VS_Multiplicity=fPsi5_VS_Multiplicity;
-		}            
+                if (fHistoMode == "1D") {
+                    fBestFitHisto = fGlauberFitHisto;
+                    auto it1=Glauber_Parameters_VS_Estimator_BestHistos.begin();
+                    auto it2=Glauber_Parameters_VS_Estimator_Histos.begin();
+                    for (int q=0; q<kGP; q++)
+                    {
+                        (it1->second)=(it2->second);
+                        it1++;
+                        it2++;
+                    }
+                }
+                else if (fHistoMode == "2D") {
+                    fBestFitHisto2D = fGlauberFitHisto2D;
+                    auto it1=Glauber_Parameters_VS_Estimator_BestHistos3D.begin();
+                    auto it2=Glauber_Parameters_VS_Estimator_Histos3D.begin();
+                    for (int q=0; q<kGP; q++)
+                    {
+                        (it1->second)=(it2->second);
+                        it1++;
+                        it2++;
+                    }
+                }
+		    }
 
 	    } 
     }
@@ -390,27 +636,34 @@ float Glauber::Fitter::FitGlauber (float *par, Float_t f0, Float_t f1, Int_t k0,
  * Compare fGlauberFitHisto with fDataHisto
  * @return chi2 value
  */
-float Glauber::Fitter::GetChi2 () const 
+float Glauber::Fitter::GetChi2 () const
 {
     float chi2 {0.0};
 
-    const int lowchibin = fFitMinBin;
-    const int highchibin = fFitMaxBin<fNbins ? fFitMaxBin : fNbins;
-    
-    for (int i=lowchibin; i<=highchibin; ++i) 
-    {
-        if (fDataHisto.GetBinContent(i) < 1.0) continue;
-        const float error2 = TMath::Power(fDataHisto.GetBinError(i), 2) + TMath::Power(fGlauberFitHisto.GetBinError(i), 2);
-//	std::cout<<"i="<<i<<"  DataError="<<fDataHisto.GetBinError(i)<<std::endl;
-//	std::cout<<"i="<<i<<"  GlauberError="<<fGlauberFitHisto.GetBinError(i)<<std::endl;
-        const float diff2 = TMath::Power((fGlauberFitHisto.GetBinContent(i) - fDataHisto.GetBinContent(i)), 2) / error2;
-//	std::cout<<"i="<<i<<"  DataContent="<<fDataHisto.GetBinContent(i)<<std::endl;
-//	std::cout<<"i="<<i<<"  GlauberContent="<<fGlauberFitHisto.GetBinContent(i)<<std::endl;
+    const int lowchibinX = fFitMinBin[0];
+    const int highchibinX = fFitMaxBin[0]<fNbins[0] ? fFitMaxBin[0] : fNbins[0];
 
-        chi2 += diff2;
+    if (fHistoMode == "1D") {
+        for (int i = lowchibinX; i <= highchibinX; ++i) {
+            if (fDataHisto.GetBinContent(i) < 1.0) continue;
+            const float error2 = TMath::Power(fDataHisto.GetBinError(i), 2) + TMath::Power(fGlauberFitHisto.GetBinError(i), 2);
+            const float diff2 = TMath::Power((fGlauberFitHisto.GetBinContent(i) - fDataHisto.GetBinContent(i)), 2) / error2;
+            chi2 += diff2;
+        }
+        chi2 = chi2 / (highchibinX - lowchibinX + 1);
     }
-    
-    chi2 = chi2 / (highchibin - lowchibin + 1);
+    else if (fHistoMode == "2D") {
+        const int lowchibinY = fFitMinBin[1];
+        const int highchibinY = fFitMaxBin[1]<fNbins[1] ? fFitMaxBin[1] : fNbins[1];
+        for (int i = lowchibinX; i <= highchibinX; ++i)
+            for (int j = lowchibinY; j <= highchibinY; ++j) {
+                if (fDataHisto2D.GetBinContent(i, j) < 1.0) continue;
+                const float error2 = TMath::Power(fDataHisto2D.GetBinError(i, j), 2) + TMath::Power(fGlauberFitHisto2D.GetBinError(i, j), 2);
+                const float diff2 = TMath::Power((fGlauberFitHisto2D.GetBinContent(i, j) - fDataHisto2D.GetBinContent(i, j)), 2) / error2;
+                chi2 += diff2;
+            }
+        chi2 = chi2 / ((highchibinX - lowchibinX + 1) * (highchibinY - lowchibinY + 1));
+    }
     return chi2;
 }
 
@@ -418,28 +671,36 @@ float Glauber::Fitter::GetChi2 () const
  * Compare fGlauberFitHisto with fDataHisto
  * @return chi2 error value
  */
-float Glauber::Fitter::GetChi2Error () const 
+float Glauber::Fitter::GetChi2Error () const
 {
     float chi2_error {0.0};
+    const int lowchibinX = fFitMinBin[0];
+    const int highchibinX = fFitMaxBin[0] < fNbins[0] ? fFitMaxBin[0] : fNbins[0];
 
-    const int lowchibin = fFitMinBin;
-    const int highchibin = fFitMaxBin<fNbins ? fFitMaxBin : fNbins;
-    
-    for (int i=lowchibin; i<=highchibin; ++i) 
-    {
-        if (fDataHisto.GetBinContent(i) < 1.0) continue;
-        const float error2 = TMath::Power(fDataHisto.GetBinError(i), 2) + TMath::Power(fGlauberFitHisto.GetBinError(i), 2);
-//	std::cout<<"i="<<i<<"  DataError="<<fDataHisto.GetBinError(i)<<std::endl;
-//	std::cout<<"i="<<i<<"  GlauberError="<<fGlauberFitHisto.GetBinError(i)<<std::endl;
-        const float diff = (fGlauberFitHisto.GetBinContent(i) - fDataHisto.GetBinContent(i));
-//	std::cout<<"i="<<i<<"  DataContent="<<fDataHisto.GetBinContent(i)<<std::endl;
-//	std::cout<<"i="<<i<<"  GlauberContent="<<fGlauberFitHisto.GetBinContent(i)<<std::endl;
-	const float error_diff = (fGlauberFitHisto.GetBinError(i) - fDataHisto.GetBinError(i));
-
-        chi2_error += TMath::Power(diff*error_diff/error2, 2);
+    if (fHistoMode == "1D") {
+        for (int i = lowchibinX; i <= highchibinX; ++i) {
+            if (fDataHisto.GetBinContent(i) < 1.0) continue;
+            const float error2 = TMath::Power(fDataHisto.GetBinError(i), 2) + TMath::Power(fGlauberFitHisto.GetBinError(i), 2);
+            const float diff = (fGlauberFitHisto.GetBinContent(i) - fDataHisto.GetBinContent(i));
+            const float error_diff = (fGlauberFitHisto.GetBinError(i) - fDataHisto.GetBinError(i));
+            chi2_error += TMath::Power(diff * error_diff / error2, 2);
+        }
+        chi2_error = 2 * TMath::Power(chi2_error, 0.5) / (highchibinX - lowchibinX + 1);
     }
-    
-    chi2_error = 2*TMath::Power(chi2_error,0.5) / (highchibin - lowchibin + 1);
+    else if (fHistoMode == "2D") {
+        const int lowchibinY = fFitMinBin[1];
+        const int highchibinY = fFitMaxBin[1]<fNbins[1] ? fFitMaxBin[1] : fNbins[1];
+        for (int i = lowchibinX; i <= highchibinX; ++i)
+            for (int j = lowchibinY; j <= highchibinY; ++j) {
+                if (fDataHisto2D.GetBinContent(i, j) < 1.0) continue;
+                const float error2 = TMath::Power(fDataHisto2D.GetBinError(i, j), 2) + TMath::Power(fGlauberFitHisto2D.GetBinError(i, j), 2);
+                const float diff = (fGlauberFitHisto2D.GetBinContent(i, j) - fDataHisto2D.GetBinContent(i, j));
+                const float error_diff = (fGlauberFitHisto2D.GetBinError(i, j) - fDataHisto2D.GetBinError(i, j));
+                chi2_error += TMath::Power(diff * error_diff / error2, 2);
+            }
+        chi2_error = 2 * TMath::Power(chi2_error, 0.5) / ((highchibinX - lowchibinX + 1) * (highchibinY - lowchibinY + 1));
+    }
+
     return chi2_error;
 }
 
@@ -453,14 +714,14 @@ void Glauber::Fitter::SetNBDhist(float mu, float k)
     // Interface for TH1F.
     const int nBins = (mu+1.)*3 < 10 ? 10 : (mu+1.)*3;
     
-    fNbdHisto = TH1F ("fNbdHisto", "", nBins, 0, nBins);
-    fNbdHisto.SetName("nbd");
+    fSampleHisto = TH1F ("fNbdHisto", "", nBins, 0, nBins);
+    fSampleHisto.SetName("nbd");
     
     for (int i=0; i<nBins; ++i) 
     {
         const float val = NBD(i, mu, k);
-        if (val>1e-10) fNbdHisto.SetBinContent(i+1, val);
-//         std::cout << "val " << val << std::endl;    
+        if (val>1e-10) fSampleHisto.SetBinContent(i+1, val);
+//         std::cout << "val " << val << std::endl;
     }
 }
 
@@ -500,10 +761,9 @@ float Glauber::Fitter::NBD(float n, float mu, float k) const
  * @param range observable range
  * @param name name of the MC-Glauber model parameter 
  * @param par array with fit parameters
- * @param Nevents
  * @return pointer to the histogram 
  */
-std::unique_ptr<TH1F> Glauber::Fitter::GetModelHisto (const float range[2], TString name, const float par[3], int nEvents)
+std::unique_ptr<TH1F> Glauber::Fitter::GetModelHisto (const float range[2], const TString& name, const float par[3])
 {    
     const float f =  par[0];
     const float mu = par[1];
@@ -519,12 +779,12 @@ std::unique_ptr<TH1F> Glauber::Fitter::GetModelHisto (const float range[2], TStr
 
     std::unique_ptr<TH1F> hModel(new TH1F ("hModel", "name", 100, fSimTree->GetMinimum(name),  fSimTree->GetMaximum(name)) );
 
-    for (int i=0; i<nEvents; i++)
+    for (int i=0; i<fnEvents; i++)
     {
         fSimTree->GetEntry(i);
         const int Na = int(Nancestors(f));
         float nHits{0.};
-        for (int j=0; j<Na; ++j) nHits += (int)fNbdHisto.GetRandom();
+        for (int j=0; j<Na; ++j) nHits += (int)fSampleHisto.GetRandom();
         
         if ( nHits > range[0] && nHits < range[1] ){
             hModel->Fill(modelpar);
@@ -532,6 +792,6 @@ std::unique_ptr<TH1F> Glauber::Fitter::GetModelHisto (const float range[2], TStr
             
     }
     
-    return std::move(hModel);
+    return hModel;
     
 }
