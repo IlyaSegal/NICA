@@ -7,6 +7,7 @@
 #ifndef GlauberFitterHelper_H
 #define GlauberFitterHelper_H 1
 
+#include <map>
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TH2.h"
@@ -35,26 +36,15 @@ namespace Glauber
         
         /*const*/ TH1F hGlaub = fit.GetGlauberFitHisto();
         /*const*/ TH1F hData = fit.GetDataHisto();
-        /*const*/ TH1F hNBD = fit.GetNBDHisto();
-        /*const*/ TH1F hNcoll = fit.GetNcollHisto();
-        /*const*/ TH1F hNpart = fit.GetNpartHisto();
+        /*const*/ TH1F hNBD = fit.GetSampleHisto();
+        /*const*/ TH1F hNcoll = *((fit.GetMapOfGlauber_Parameters_Histos()).at("Ncoll"));
+        /*const*/ TH1F hNpart = *((fit.GetMapOfGlauber_Parameters_Histos()).at("Npart"));
         /*const*/ TH1F hBestFit = fit.GetBestFitHisto();
 
-		  TH2F hBestB_VS_Multiplicity=fit.GetBestB_VS_Multiplicity();
-		  TH2F hBestNpart_VS_Multiplicity=fit.GetBestNpart_VS_Multiplicity();
-		  TH2F hBestNcoll_VS_Multiplicity=fit.GetBestNcoll_VS_Multiplicity();
-          TH2F hBestEcc1_VS_Multiplicity=fit.GetBestEcc1_VS_Multiplicity();
-          TH2F hBestPsi1_VS_Multiplicity=fit.GetBestPsi1_VS_Multiplicity();
-          TH2F hBestEcc2_VS_Multiplicity=fit.GetBestEcc2_VS_Multiplicity();
-          TH2F hBestPsi2_VS_Multiplicity=fit.GetBestPsi2_VS_Multiplicity();
-          TH2F hBestEcc3_VS_Multiplicity=fit.GetBestEcc3_VS_Multiplicity();
-          TH2F hBestPsi3_VS_Multiplicity=fit.GetBestPsi3_VS_Multiplicity();
-          TH2F hBestEcc4_VS_Multiplicity=fit.GetBestEcc4_VS_Multiplicity();
-          TH2F hBestPsi4_VS_Multiplicity=fit.GetBestPsi4_VS_Multiplicity();
-          TH2F hBestEcc5_VS_Multiplicity=fit.GetBestEcc5_VS_Multiplicity();
-          TH2F hBestPsi5_VS_Multiplicity=fit.GetBestPsi5_VS_Multiplicity();
+		  TH2F* BestHistos[kGP];
+		  for (int i=0; i<kGP; i++) BestHistos[i]=(fit.GetMapOfGlauber_Parameters_VS_Estimator_BestHistos()).at(gGlauberParameters[i].name);
 
-        std::unique_ptr <TFile> fOut{TFile::Open("glauber_qa.root", "recreate")}; 
+        std::unique_ptr <TFile> fOut{TFile::Open(Form("glauber_qa%s.root", fit.GetOutFileIDName().Data()), "recreate")}; 
 
         if (isSim){
             c1->cd(1);
@@ -65,7 +55,7 @@ namespace Glauber
             
             std::unique_ptr <TLegend> legSim { new TLegend(0.6,0.75,0.75,0.83) }; 
             legSim->AddEntry(&hNpart ,"Npart", "l");    
-            legSim->AddEntry(&hNcoll ,"hNcoll", "l");    
+            legSim->AddEntry(&hNcoll ,"Ncoll", "l");    
             legSim->Draw("same");
             
             hNcoll.Write();
@@ -85,19 +75,7 @@ namespace Glauber
                 legData->AddEntry(&hData ,"Data", "l");    
                 legData->Draw("same");   
                 hBestFit.Write();
-                hBestB_VS_Multiplicity.Write();
-                hBestNpart_VS_Multiplicity.Write();
-                hBestNcoll_VS_Multiplicity.Write();
-                hBestEcc1_VS_Multiplicity.Write();
-                hBestEcc1_VS_Multiplicity.Write();
-                hBestEcc2_VS_Multiplicity.Write();
-                hBestEcc2_VS_Multiplicity.Write();
-                hBestEcc3_VS_Multiplicity.Write();
-                hBestEcc3_VS_Multiplicity.Write();
-                hBestEcc4_VS_Multiplicity.Write();
-                hBestEcc4_VS_Multiplicity.Write();
-                hBestEcc5_VS_Multiplicity.Write();
-                hBestEcc5_VS_Multiplicity.Write();
+		for (int i=0; i<kGP; i++) BestHistos[i]->Write();
             }
         }
         
@@ -127,7 +105,7 @@ namespace Glauber
 	BestResult -> Write();
 
         c1->Write();
-        c1->SaveAs("glauber.pdf");
+        c1->SaveAs(Form("glauber%s.pdf", fit.GetOutFileIDName().Data()));
         fOut->Close();
     }
     

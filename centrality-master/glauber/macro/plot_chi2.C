@@ -3,13 +3,13 @@
 void plot_chi2(TString InFileName)
 {
     gStyle->SetOptStat(0000);   
-
+/*
     TString qa_filename = "/home/vklochkov/Data/na61/na61_30_qa.root";
     TString histoname = "reco_info/hMreco";
 
     std::unique_ptr<TFile> fqa{TFile::Open( qa_filename.Data() )};    
     TH1F *hData1 = (TH1F*)fqa->Get( histoname );
-    
+*/    
     TFile *file = new TFile(InFileName);    
     TTree *tree = (TTree*) file->Get("test_tree");
     
@@ -49,16 +49,16 @@ void plot_chi2(TString InFileName)
         {
             TCanvas *c1 = new TCanvas ( "c1", "c1", 1200, 800 ); 
             
-            hData1->Draw();    
+//            hData1->Draw();    
             h1->Draw("same");
             h1->GetYaxis()->SetTitle("counts");    
             h1->GetZaxis()->SetTitle("multiplicity");
 
             gPad->SetLogy();
             gPad->Update();
-            hData1->SetLineColor(kRed);
+//            hData1->SetLineColor(kRed);
             TLegend* leg1 = new TLegend(0.7, 0.75, 0.85, 0.89);    
-            leg1->AddEntry(hData1, "M_{STS}", "l"); 
+//            leg1->AddEntry(hData1, "M_{STS}", "l"); 
             leg1->AddEntry(h1, "MC-Glauber Fit", "l");
             leg1->Draw("same");     
             gPad->Update();

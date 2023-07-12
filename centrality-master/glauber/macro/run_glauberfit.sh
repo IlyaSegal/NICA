@@ -1,33 +1,57 @@
 #!/bin/bash
-#SBATCH -J GlauberFit
-#SBATCH -o out/%j.out.log
-#SBATCH -e error/%j.err.log
-#SBATCH --time=08:00:00
-#SBATCH --array=15-50
 
-INDEX=$(echo "$SLURM_ARRAY_TASK_ID * 0.02" | bc -l)
-FILE=/lustre/nyx/cbm/users/klochkov/na61/pbpb/30agev/data/flow/psd_centr/pbpb_30agev_data_config/all_corrections/pi_neg_debug/qa.root
+k=(${SLURM_ARRAY_TASK_ID}*$kStep)+$kMin-1
+export OutFileIDName=k${k}
 
-K0=1
-K1=30
-MULTMIN=$1
+filenum=${SLURM_ARRAY_TASK_ID}
+jobDir=${log_dir}/${OutFileIDName}
 
-EXE_DIR=/lustre/nyx/cbm/users/klochkov/soft/CentralityFramework/build/
-OUT_DIR=/lustre/nyx/cbm/users/klochkov/data/centrality/na61/pb30pb/glauber/npart/pbpb_30agev_data_pions/$MULTMIN/
+mkdir -p ${jobDir}
+cd ${jobDir}
+echo "current dir:" $PWD
 
-source /lustre/nyx/cbm/users/klochkov/soft/root6/root-6.10.08/install/bin/thisroot.sh
+elapsed=$SECONDS
 
-mkdir -p $OUT_DIR/$SLURM_ARRAY_TASK_ID
-cd $OUT_DIR/$SLURM_ARRAY_TASK_ID
+seed=$(perl -e 'print int rand 99999999, "\n";')
+echo seed: ${seed}
 
-cp $EXE_DIR/glauber ./
+source $root_config
+rsync -v $CentralityFramework ${jobDir}
 
-echo $INDEX
-echo $NK
-echo $MULTMIN
+sed -i -- "s~gRandom->SetSeed(0);~gRandom->SetSeed(${seed});~g" ${jobDir}/centrality/glauber/main.cpp
+sed -i -- "s~fitter.SetMultiplicityStep (0);~fitter.SetMultiplicityStep ($MultiplicityStep);~g"
+sed -i -- "s~fitter.SetMinMultiplicity (0);~fitter.SetMinMultiplicity ($MinMultiplicity);~g"
+sed -i -- "s~fitter.SetMaxMultiplicity (0);~fitter.SetMaxMultiplicity ($MaxMultiplicity);~g"
+sed -i -- "s~fitter.SetMinFitRange (0);~fitter.SetMinFitRange ($MinFitRange);~g"
+sed -i -- "s~fitter.Set_kMin (0.0);~fitter.Set_kMin ($k);~g"
+sed -i -- "s~fitter.Set_kMax (0.0);~fitter.Set_kMax ($k);~g"
+sed -i -- "s~fitter.Set_kStep (0.0);~fitter.Set_kStep (0.0);~g"
+sed -i -- "s~fitter.Set_fMin (0.0);~fitter.Set_fMin ($fMin);~g"
+sed -i -- "s~fitter.Set_fMax (0.0);~fitter.Set_fMax ($fMax);~g"
+sed -i -- "s~fitter.Set_fStep (0.0);~fitter.Set_fStep ($fStep);~g"
+sed -i -- "s~fitter.SetGlauber_filename ("");~fitter.SetGlauber_filename ("$Glauber_filename");~g"
+sed -i -- "s~fitter.SetGlauber_treename ("");~fitter.SetGlauber_treename ("$Glauber_treename");~g"
+sed -i -- "s~fitter.SetDataHisto_filename ("");~fitter.SetDataHisto_filename ("$DataHisto_filename");~g"
+sed -i -- "s~fitter.SetDataHisto_name ("");~fitter.SetDataHisto_name ("$DataHisto_name");~g"
+sed -i -- "s~fitter.SetOutDirName ("");~fitter.SetOutDirName ("$OutDirName");~g"
+sed -i -- "s~fitter.SetOutFileIDName ("");~fitter.SetOutFileIDName ("_$OutFileIDName");~g"
+sed -i -- "s~fitter.SetAncestor_Mode ("");~fitter.SetAncestor_Mode ("$Ancestor_Mode");~g"
+sed -i -- "s~fitter.SetFitFunction_Mode ("");~fitter.SetFitFunction_Mode ("$FitFunction_Mode");~g"
+sed -i -- "s~fitter.SetFit_Mode ("");~fitter.SetFit_Mode ("$Fit_Mode");~g"
+sed -i -- "s~fitter.SetnMuIter (0);~fitter.SetnMuIter ($nMuIter);~g"
+sed -i -- "s~fitter.SetMassNumber (0);~fitter.SetMassNumber ($MassNumber);~g"
+sed -i -- "s~fitter.SetNEvents (0);~fitter.SetNEvents ($NEvents);~g"
 
-./glauber $INDEX $K0 $K1 $MULTMIN $FILE &> log.txt
+cd centrality/build
+make
+./glauber &>$OutDirName/log_${OutFileIDName}.txt
 
-rm glauber
+cd ${jobDir}
+rm -rf centrality
 
-echo "DONE"
+[ $remove_logs == 1 ] && rm -rf $log_dir/$filenum
+
+elapsed=$(expr $SECONDS - $elapsed)
+echo "Done!"
+echo Elapsed time: $(expr $elapsed / 60) minutes
+

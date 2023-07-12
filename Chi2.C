@@ -1,4 +1,4 @@
-void Chi2(TString InFileName)
+void Chi2(TString InFileName, TString OutFileName)
 {
     TFile *file = new TFile(InFileName);    
     TTree *tree = (TTree*) file->Get("test_tree");
@@ -50,6 +50,7 @@ void Chi2(TString InFileName)
 	if (chi2<chi2_min) {chi2_min=chi2; chi2_min_error=chi2_error; CHI2=chi2_min+chi2_min_error; f_min=f; mu_min=mu; k_min=k; X=f_min; Y=k;}
     }
 
+    std::cout << " f = " << f_min << " mu = " << mu_min << " k = " << k_min << " chi2 = " << chi2_min << "+/-" << chi2_min_error << std::endl;
     
     
     TCanvas *c1 = new TCanvas("c1", "c1", 800, 800);
@@ -99,7 +100,7 @@ void Chi2(TString InFileName)
 
     std::cout << " f = " << f_min << "+/-" << f_delta << " mu = " << mu_min << "+/-" << mu_delta << " k = " << k_min << "+/-" << k_delta << " chi2 = " << chi2_min << "+/-" << chi2_min_error << std::endl;
     
-    TFile *f1 = new TFile("Fit_Errors_RPC.root", "recreate");
+    TFile *f1 = new TFile(OutFileName, "recreate");
     delta->Write();
     g->Write();
     f1->Close();  

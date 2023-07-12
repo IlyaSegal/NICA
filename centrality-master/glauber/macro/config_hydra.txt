@@ -1,0 +1,23 @@
+Seed: 0
+MultiplicityStep: 1
+MinMultiplicity: 5
+MaxMultiplicity: 85
+MinFitRange: 70
+kMin: 0.0
+kMax: 0.0
+kStep: 0.0
+fMin: 0.0
+fMax: 1.0
+fStep: 0.05
+Glauber_filename: /eos/eosnica.jinr.ru/nica/mpd/users/isegal/soft/glauber_old/glauber_AgAg_4.0GeV.root
+Glauber_treename: nt_AgB_AgB
+DataHisto_filename: /lustre/stor1/parfenov/Centrality/refMults/DCM-QGSM-SMM/dcmqgsmsmm_AgAg_4.0gev_dcacut.root
+DataHisto_name: hRefMultSTAR
+OutDirName: 
+OutFileIDName: 
+Ancestor_Mode: Default
+FitFunction_Mode: NBD
+Fit_Mode: GoldenSection
+nMuIter: 5
+MassNumber: 197
+NEvents: 5000000
