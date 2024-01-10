@@ -14,6 +14,23 @@ ClassImp(Glauber::Fitter)
 void Glauber::Fitter::Init(std::unique_ptr<TTree> tree)
 {
 
+    mean_fit_proj = new TF1("mean_fit_proj", "[0]+[1]*TMath::Power(x,[2])", 0, fAProj+10);
+    sigma_max_fit_proj = new TF1("sigma_max_fit_proj", "[0]+[1]*TMath::Power(x,[2])", 0, fAProj+10);
+    mean_fit_targ = new TF1("mean_fit_targ", "[0]+[1]*TMath::Power(x,[2])", 0, fATarg+10);
+    sigma_max_fit_targ = new TF1("sigma_max_fit_targ", "[0]+[1]*TMath::Power(x,[2])", 0, fATarg+10);
+    //      NA61/SHINE Pb-Pb @ 13GeV/c 
+    mean_fit_proj->SetParameters(-1.37869e+02,1.09759e+02,2.14734e-01);
+    sigma_max_fit_proj->SetParameters(-4.34575e+01,2.64658e+01,4.21169e-01);
+    mean_fit_targ->SetParameters(-1.05371e+02,8.01685e+01,2.57008e-01);
+    sigma_max_fit_targ->SetParameters(-4.34575e+01,2.64658e+01,4.21169e-01);
+        
+    /*//      BM@N Xe-CsI @ 3.85GeV 
+    mean_fit_proj->SetParameters(-6.66346e+01,5.17635e+01,2.77331e-01);
+    sigma_max_fit_proj->SetParameters(-3.18237e+01,1.96394e+01,4.30432e-01);
+    mean_fit_targ->SetParameters(-6.66346e+01,5.17635e+01,2.77331e-01);
+    sigma_max_fit_targ->SetParameters(-3.18237e+01,1.96394e+01,4.30432e-01);
+    */
+
     fSimTree = std::move(tree);
     
     if (!fSimTree) 
@@ -39,7 +56,7 @@ void Glauber::Fitter::Init(std::unique_ptr<TTree> tree)
     it0=Glauber_Parameters.begin();
     for (int i=0; i<kGP; i++) 
     {
-	    Glauber_ParametersMax.insert( std::pair<TString, const int> ((it0->first), int (fSimTree->GetMaximum(it0->first))) );
+	    Glauber_ParametersMax.insert( std::pair<TString, const int> ((it0->first), int (fSimTree->GetMaximum(it0->first) + 1)) );
         Glauber_ParametersMin.insert( std::pair<TString, const int> ((it0->first), int (fSimTree->GetMinimum(it0->first))) );
 	    it0++;
     }
@@ -79,7 +96,9 @@ void Glauber::Fitter::Init(std::unique_ptr<TTree> tree)
         fNbins[0]++;
         const float min = fDataHisto.GetXaxis()->GetXmin();
         const float max = fDataHisto.GetXaxis()->GetXmax();
-        fMaxValue[0] = min + (max - min) * fNbins[0] / fDataHisto.GetNbinsX();
+//        fMaxValue[0] = min + (max - min) * fNbins[0] / fDataHisto.GetNbinsX();
+        fMaxValue[0] = 280;
+        fNbins[0] = 280;
 
         it0=Glauber_Parameters.begin();
         it1=Glauber_ParametersMin.begin();
@@ -140,61 +159,84 @@ void Glauber::Fitter::Init(std::unique_ptr<TTree> tree)
     }
 }
 
-float Glauber::Fitter::Nancestors(float f, TF1* mean_fit_proj, TF1* sigma_max_fit_proj, TF1* mean_fit_targ, TF1* sigma_max_fit_targ) const
+float Glauber::Fitter::Nancestors(float f, const TString& Ancestor_Mode) const
 {
-    if       (fAncestor_Mode == "Default")    return f*Glauber_Parameters.at("Npart") + (1-f)*Glauber_Parameters.at("Ncoll");
-    else if  (fAncestor_Mode == "Nspec")      return (fAProj+fATarg)-Glauber_Parameters.at("Npart");
-    else if  (fAncestor_Mode == "NspecProj")  return fAProj-Glauber_Parameters.at("NpartA");
-    else if  (fAncestor_Mode == "NspecTarg")  return fATarg-Glauber_Parameters.at("NpartB");
-    else if  (fAncestor_Mode == "Atot")      
+    if       (Ancestor_Mode == "Default")    return f*Glauber_Parameters.at("Npart") + (1-f)*Glauber_Parameters.at("Ncoll");
+    else if  (Ancestor_Mode == "Nspec")      return (fAProj+fATarg)-Glauber_Parameters.at("Npart");
+    else if  (Ancestor_Mode == "NspecProj")  return fAProj-Glauber_Parameters.at("NpartA");
+    else if  (Ancestor_Mode == "NspecTarg")  return fATarg-Glauber_Parameters.at("NpartB");
+    else if  (Ancestor_Mode == "Atot")       return TMath::Power((fAProj+fATarg),1-f)*TMath::Power((fAProj+fATarg)-Glauber_Parameters.at("Npart"),f);
+    else if  (Ancestor_Mode == "AtotProj")   return TMath::Power(fAProj,1-f)*TMath::Power(fAProj-Glauber_Parameters.at("NpartA"),f);
+    else if  (Ancestor_Mode == "AtotTarg")   return TMath::Power(fATarg,1-f)*TMath::Power(fATarg-Glauber_Parameters.at("NpartB"),f);
+    else if  (Ancestor_Mode == "AtotGraph")      
     {
     	auto Atot_proj = -999;
     	auto Atot_targ = -999;
     	auto Nspec_proj = (int) (fAProj-Glauber_Parameters.at("NpartA"));
     	auto Nspec_targ = (int) (fATarg-Glauber_Parameters.at("NpartB"));
-    	auto mean = mean_fit_proj->GetX(Nspec_proj, 0, fAProj+2);
-    	auto width = sigma_max_fit_proj->GetX(Nspec_proj, 0, fAProj+2) - mean;
-    	while((Atot_proj<0) || (Atot_proj>fAProj)) Atot_proj = (int) gRandom->Gaus(mean, width);
-    	mean = mean_fit_targ->GetX(Nspec_targ, 0, fATarg+2);
-    	width = sigma_max_fit_targ->GetX(Nspec_targ, 0, fATarg+2) - mean;
-    	while((Atot_targ<0) || (Atot_targ>fATarg)) Atot_targ = (int) gRandom->Gaus(mean, width);
+    	auto mean = mean_fit_proj->GetX(Nspec_proj, 0, fAProj+10);
+//    	auto width = sigma_max_fit_proj->GetX(Nspec_proj, 0, fAProj+10) - mean;
+//    	while((Atot_proj<0) || (Atot_proj>fAProj)) Atot_proj = (int) gRandom->Gaus(mean, width);
+	Atot_proj = (int) mean;
+    	mean = mean_fit_targ->GetX(Nspec_targ, 0, fATarg+10);
+//    	width = sigma_max_fit_targ->GetX(Nspec_targ, 0, fATarg+10) - mean;
+//    	while((Atot_targ<0) || (Atot_targ>fATarg)) Atot_targ = (int) gRandom->Gaus(mean, width);
+	Atot_targ = (int) mean;
     	return Atot_proj + Atot_targ;
     }
-    else if  (fAncestor_Mode == "AtotProj")
+    else if  (Ancestor_Mode == "AtotProjGraph")
     {
     	auto Atot = -999;
     	auto Nspec = (int) (fAProj-Glauber_Parameters.at("NpartA"));
-    	auto mean = mean_fit_proj->GetX(Nspec, 0, fAProj+2);
-    	auto width = sigma_max_fit_proj->GetX(Nspec, 0, fAProj+2) - mean;
-    	while((Atot<0) || (Atot>fAProj)) Atot = (int) gRandom->Gaus(mean, width);
+    	auto mean = mean_fit_proj->GetX(Nspec, 0, fAProj+10);
+//    	auto width = sigma_max_fit_proj->GetX(Nspec, 0, fAProj+10) - mean;
+//    	while((Atot<0) || (Atot>fAProj)) Atot = (int) gRandom->Gaus(mean, width);
+	Atot = (int) mean;
     	return Atot;
     }
-    else if  (fAncestor_Mode == "AtotTarg")
+    else if  (Ancestor_Mode == "AtotTargGraph")
     {
     	auto Atot = -999;
     	auto Nspec = (int) (fATarg-Glauber_Parameters.at("NpartB"));
-    	auto mean = mean_fit_targ->GetX(Nspec, 0, fATarg+2);
-    	auto width = sigma_max_fit_targ->GetX(Nspec, 0, fATarg+2) - mean;
-    	while((Atot<0) || (Atot>fATarg)) Atot = (int) gRandom->Gaus(mean, width);
+    	auto mean = mean_fit_targ->GetX(Nspec, 0, fATarg+10);
+//    	auto width = sigma_max_fit_targ->GetX(Nspec, 0, fATarg+10) - mean;
+//    	while((Atot<0) || (Atot>fATarg)) Atot = (int) gRandom->Gaus(mean, width);
+    	Atot = (int) mean;
     	return Atot;
     }
-    else if  (fAncestor_Mode == "Npart")      return TMath::Power(Glauber_Parameters.at("Npart"), f); 
-    else if  (fAncestor_Mode == "Ncoll")      return TMath::Power(Glauber_Parameters.at("Ncoll"), f);
+    else if  (Ancestor_Mode == "AtotHisto") {
+        auto Nspec_proj = (int) (fAProj-Glauber_Parameters.at("NpartA"));
+    	auto Nspec_targ = (int) (fATarg-Glauber_Parameters.at("NpartB"));
+        auto hAtot = (TH1D*)fAtotSampleHisto.ProjectionX("hAtot", Nspec_proj+Nspec_targ+1, Nspec_proj+Nspec_targ+1); 
+        return (int) hAtot->GetRandom();
+    }
+    else if  (Ancestor_Mode == "AtotProjHisto") {
+        auto Nspec = (int) (fAProj-Glauber_Parameters.at("NpartA"));
+        auto hAtot = (TH1D*)fAtotSampleHisto.ProjectionX("hAtot", Nspec+1, Nspec+1); 
+        return (int) hAtot->GetRandom();
+    }   
+    else if  (Ancestor_Mode == "AtotTargHisto") {
+        auto Nspec = (int) (fATarg-Glauber_Parameters.at("NpartB"));
+        auto hAtot = (TH1D*)fAtotSampleHisto.ProjectionX("hAtot", Nspec+1, Nspec+1); 
+        return (int) hAtot->GetRandom();
+    }       
+    else if  (Ancestor_Mode == "Npart")      return TMath::Power(Glauber_Parameters.at("Npart"), f); 
+    else if  (Ancestor_Mode == "Ncoll")      return TMath::Power(Glauber_Parameters.at("Ncoll"), f);
     
     return -1.;
 }
 
-float Glauber::Fitter::NancestorsMax(float f) const
+float Glauber::Fitter::NancestorsMax(float f, const TString& Ancestor_Mode) const
 {
     const int NpartMax = fSimTree->GetMaximum("Npart");  // some magic
     const int NcollMax = fSimTree->GetMaximum("Ncoll");
     
-    if       (fAncestor_Mode == "Default")    return f*NpartMax + (1-f)*NcollMax;
-    else if  (fAncestor_Mode == "Nspec" || fAncestor_Mode == "Atot")      return fAProj + fATarg;
-    else if  (fAncestor_Mode == "NspecProj" || fAncestor_Mode == "AtotProj")  return fAProj;
-    else if  (fAncestor_Mode == "NspecTarg" || fAncestor_Mode == "AtotTarg")  return fATarg;
-    else if  (fAncestor_Mode == "Npart")      return TMath::Power(NpartMax, f); 
-    else if  (fAncestor_Mode == "Ncoll")      return TMath::Power(NcollMax, f);
+    if       (Ancestor_Mode == "Default")    return f*NpartMax + (1-f)*NcollMax;
+    else if  (Ancestor_Mode == "Nspec" || Ancestor_Mode == "Atot" || Ancestor_Mode == "AtotGraph" ||Ancestor_Mode == "AtotHisto")      return fAProj + fATarg;
+    else if  (Ancestor_Mode == "NspecProj" || Ancestor_Mode == "AtotProj" || Ancestor_Mode == "AtotProjGraph" ||Ancestor_Mode == "AtotProjHisto")  return fAProj;
+    else if  (Ancestor_Mode == "NspecTarg" || Ancestor_Mode == "AtotTarg" || Ancestor_Mode == "AtotTargGraph" ||Ancestor_Mode == "AtotTargHisto")  return fATarg;
+    else if  (Ancestor_Mode == "Npart")      return TMath::Power(NpartMax, f); 
+    else if  (Ancestor_Mode == "Ncoll")      return TMath::Power(NcollMax, f);
     
     return -1.;
 }
@@ -214,7 +256,7 @@ void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, Bool_t Nor
             (it->second)->Reset();
             it++;
         }
-        if (fMode == "Multiplicity") SetNBDhist(mu, k);
+        if (fMode == "Multiplicity" || fMode == "MultiplicityHADES") SetNBDhist(mu, k);
     }
     else if (fHistoMode == "2D") {
         fGlauberFitHisto2D = TH2F("glaub", "", fNbins[0] * 1.3, 0, 1.3 * fMaxValue[0], fNbins[1] * 1.3, 0, 1.3 * fMaxValue[1]);
@@ -226,56 +268,66 @@ void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, Bool_t Nor
         }
     }
     
-    SetNBDhist(mu,  k);
+    if (fMode == "Multiplicity" || fMode == "MultiplicityHADES") SetNBDhist(mu,  k);
+    else SetNBDhist(0.34,  88);
     std::unique_ptr<TH1F> htemp {(TH1F*)fSampleHisto.Clone("htemp")};
+
     TF1* Gamma = new TF1("gamma", Form("TMath::GammaDist(x,1,%f,%f)", mu, k), mu, mu*(fAProj + fATarg)+100);
-    auto* mean_fit_proj = new TF1("mean_fit_proj", "[0]+[1]*TMath::Power(x,[2])", 0, fAProj+2);
-    mean_fit_proj->SetParameters(-1.05371e+02,8.01685e+01,2.57008e-01);
-    auto* sigma_max_fit_proj = new TF1("sigma_max_fit_proj", "[0]+[1]*TMath::Power(x,[2])", 0, fAProj+2);
-    sigma_max_fit_proj->SetParameters(-4.34575e+01,2.64658e+01,4.21169e-01);
-    auto* mean_fit_targ = new TF1("mean_fit_targ", "[0]+[1]*TMath::Power(x,[2])", 0, fATarg+2);
-    mean_fit_targ->SetParameters(-1.05371e+02,8.01685e+01,2.57008e-01);
-    auto* sigma_max_fit_targ = new TF1("sigma_max_fit_targ", "[0]+[1]*TMath::Power(x,[2])", 0, fATarg+2);
-    sigma_max_fit_targ->SetParameters(-4.34575e+01,2.64658e+01,4.21169e-01);
 
     for (int i=0; i<fnEvents; i++)
     {
         fSimTree->GetEntry(i);
-        const int Na = int(Nancestors(f, mean_fit_proj, sigma_max_fit_proj, mean_fit_targ, sigma_max_fit_targ));
+        const int Na = int(Nancestors(f, fAncestor_Mode));
+        if (fMode == "MultiplicityHADES") int Na = int(Nancestors(0, fAncestor_Mode));
         float nEstimatorX {0.};
         float nEstimatorY {0.};
 
-        if (fMode == "Multiplicity" || fMode == "Energy" || fMode == "EnergyGamma" || fMode == "EnergyLandau") {
+        if (fHistoMode == "1D") {
             if (fMode == "Multiplicity") {
             	for (int j = 0; j < Na; j++) nEstimatorX += int(htemp->GetRandom());
             }
+            else if (fMode == "MultiplicityHADES") {
+            	for (int j = 0; j < Na; j++) nEstimatorX += int((htemp->GetRandom())*(1-f*Glauber_Parameters.at("Npart")*Glauber_Parameters.at("Npart")));
+            }
             else if (fMode == "Energy") {
             	for (int j = 0; j < Na; j++) {
-			float E = -1;
-			while (E<0) E = gRandom->Gaus(mu, k);
-			nEstimatorX = nEstimatorX + E;
-		}
-		if (fAncestor_Mode == "NspecProj" || fAncestor_Mode == "AtotProj") nEstimatorX = nEstimatorX + (1 - (float)Na / (float)fAProj) * f;
-		else if (fAncestor_Mode == "Nspec" || fAncestor_Mode == "Atot") nEstimatorX = nEstimatorX + (1 - (float)Na / (float)(fAProj + fATarg)) * f;
+			        float E = -1;
+			        while (E < 0) E = gRandom->Gaus(mu, k);
+			        nEstimatorX = nEstimatorX + E;
+		        }
+            }
+            else if (fMode == "Energy+Multiplicity") {
+            	for (int j = 0; j < Na; j++) {
+			        float E = -1;
+			        while (E < 0) E = gRandom->Gaus(mu, k);
+			        nEstimatorX = nEstimatorX + E;
+		        }
+                int NaNBD = int(Nancestors(1, "Default"));
+                int mult = 0;
+                for (int j = 0; j < NaNBD; j++) mult += int(htemp->GetRandom());
+                if (mult < 10) mult = int(gRandom->Gaus(1, 1));
+                else if (mult >= 10 || mult < 50) mult = int(gRandom->Gaus(3, 1));
+                else if (mult >= 50 || mult < 170) mult = int(gRandom->Gaus(6, 2.5));
+                else if (mult >= 170) mult = int(gRandom->Gaus(7, 2.5));
+                for (int ii = 0; ii < mult; ii++) {
+                    float E = -1;
+                    while (E < 0) E = gRandom->Landau(0.6, 0.75);
+			        nEstimatorX = nEstimatorX + E;
+                }
             }
             else if (fMode == "EnergyGamma") {
             	for (int j = 0; j < Na; j++) {
-			float E = -1;
-			
-			while (E<0) E = Gamma->GetRandom(gRandom);
-			nEstimatorX = nEstimatorX + E;
-		}
-		if (fAncestor_Mode == "NspecProj" || fAncestor_Mode == "AtotProj") nEstimatorX = nEstimatorX + (1 - (float)Na / (float)fAProj) * f;
-		else if (fAncestor_Mode == "Nspec" || fAncestor_Mode == "Atot") nEstimatorX = nEstimatorX + (1 - (float)Na / (float)(fAProj + fATarg)) * f;
+			        float E = -1;
+			        while (E < 0) E = Gamma->GetRandom(gRandom);
+			        nEstimatorX = nEstimatorX + E;
+		        }
             }
             else if (fMode == "EnergyLandau") {
             	for (int j = 0; j < Na; j++) {
-			float E = -1;
-			while (E<0) E = gRandom->Landau(mu, k);
-			nEstimatorX = nEstimatorX + E;
-		}
-		if (fAncestor_Mode == "NspecProj" || fAncestor_Mode == "AtotProj") nEstimatorX = nEstimatorX + (1 - (float)Na / (float)fAProj) * f;
-		else if (fAncestor_Mode == "Nspec" || fAncestor_Mode == "Atot") nEstimatorX = nEstimatorX + (1 - (float)Na / (float)(fAProj + fATarg)) * f;
+			        float E = -1;
+			        while (E < 0) E = gRandom->Landau(mu, k);
+			        nEstimatorX = nEstimatorX + E;
+		        }
             }
             fGlauberFitHisto.Fill(nEstimatorX);
             auto it1 = Glauber_Parameters.begin();
@@ -286,14 +338,15 @@ void Glauber::Fitter::SetGlauberFitHisto (float f, float mu, float k, Bool_t Nor
                 it2++;
             }
         }
-        else if (fMode == "RapidityVSEnergy") {
-            float fE;
-            for (int j = 0; j < Na; j++) {
-                fE = gRandom->Gaus(mu, k);
-                nEstimatorX += fE;
-                nEstimatorY += TMath::Abs(gRandom->Gaus(0, fYSigma/fE));
+        else if (fHistoMode == "2D") {
+            if (fMode == "MultiplicityVSEnergy") {
+                float fE;
+                for (int j = 0; j < Na; j++) {
+                    fE = gRandom->Gaus(mu, k);
+                    nEstimatorX += fE;
+                    nEstimatorY += TMath::Abs(gRandom->Gaus(0, 1));
+                }
             }
-            nEstimatorY = nEstimatorY / Na;
             fGlauberFitHisto2D.Fill(nEstimatorX, nEstimatorY);
             auto it1 = Glauber_Parameters.begin();
             auto it2 = Glauber_Parameters_VS_Estimator_Histos3D.begin();
@@ -615,8 +668,9 @@ float Glauber::Fitter::FitGlauber (float *par)
 	    f = i;
 	    for (float j=f_kMin; j<=f_kMax; j=j+f_kStep)
 	    {
-            if (fMode == "Multiplicity") mu = fMaxValue[0] / NancestorsMax(f);
-            else if (fMode == "Energy" || fMode == "RapidityVSEnergy" || fMode == "EnergyGamma" || fMode == "EnergyLandau") mu = fEBeam;
+            if (fMode == "Multiplicity") mu = fMaxValue[0] / NancestorsMax(f, fAncestor_Mode);
+            else if (fMode == "MultiplicityHADES") mu = fMaxValue[0] / NancestorsMax(0, fAncestor_Mode);
+            else if (fMode == "Energy" || fMode == "MultiplicityVSEnergy" || fMode == "EnergyGamma" || fMode == "EnergyLandau" || fMode == "Energy+Multiplicity") mu = fEBeam;
 		    k = j;
 		    const float mu_min = f_MuMinPercentage*mu;
 		    const float mu_max = f_MuMaxPercentage*mu;
@@ -818,21 +872,12 @@ std::unique_ptr<TH1F> Glauber::Fitter::GetModelHisto (const float range[2], cons
 //     TRandom random;  
 //     random.SetSeed(mu*k);
 
-    std::unique_ptr<TH1F> hModel(new TH1F ("hModel", "name", 100, fSimTree->GetMinimum(name),  fSimTree->GetMaximum(name)) );
-    
-    auto* mean_fit_proj = new TF1("mean_fit_proj", "[0]+[1]*TMath::Power(x,[2])", 0, fAProj+2);
-    mean_fit_proj->SetParameters(-1.05371e+02,8.01685e+01,2.57008e-01);
-    auto* sigma_max_fit_proj = new TF1("sigma_max_fit_proj", "[0]+[1]*TMath::Power(x,[2])", 0, fAProj+2);
-    sigma_max_fit_proj->SetParameters(-4.34575e+01,2.64658e+01,4.21169e-01);
-    auto* mean_fit_targ = new TF1("mean_fit_targ", "[0]+[1]*TMath::Power(x,[2])", 0, fATarg+2);
-    mean_fit_targ->SetParameters(-1.05371e+02,8.01685e+01,2.57008e-01);
-    auto* sigma_max_fit_targ = new TF1("sigma_max_fit_targ", "[0]+[1]*TMath::Power(x,[2])", 0, fATarg+2);
-    sigma_max_fit_targ->SetParameters(-4.34575e+01,2.64658e+01,4.21169e-01);
+    std::unique_ptr<TH1F> hModel(new TH1F ("hModel", "name", 100, fSimTree->GetMinimum(name),  fSimTree->GetMaximum(name)) );    
 
     for (int i=0; i<fnEvents; i++)
     {
         fSimTree->GetEntry(i);
-        const int Na = int(Nancestors(f, mean_fit_proj, sigma_max_fit_proj, mean_fit_targ, sigma_max_fit_targ));
+        const int Na = int(Nancestors(f, fAncestor_Mode));
         float nHits{0.};
         for (int j=0; j<Na; ++j) nHits += (int)fSampleHisto.GetRandom();
         

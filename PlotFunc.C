@@ -59,6 +59,7 @@ TGraphErrors *RatioGr(TGraphErrors *const &gr1, TGraphErrors *const &gr2, double
     {
         vx_gr3[i] = vx_gr1[i];
         ex_gr3[i] = ex_gr1[i];
+//        vy_gr3[i] = 0.5*(vy_gr1[i] / vy_gr2[i]-1)+1;
         vy_gr3[i] = vy_gr1[i] / vy_gr2[i];
         ey_gr3[i] = sqrt(pow(ey_gr1[i] / vy_gr2[i], 2) + pow(vy_gr1[i] * ey_gr2[i] / (vy_gr2[i] * vy_gr2[i]), 2));
         if (!Error)

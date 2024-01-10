@@ -2,7 +2,7 @@ void HistoCutE(TString InFileName)
 {
 	TFile *f1 = new TFile(Form("%s/glauber_qa.root", InFileName.Data()));
 	TH1F *FitHisto = (TH1F *)f1->Get("glaub_fit_histo");
-	TH1F *DataHisto = (TH1F *)f1->Get("hE");
+	TH1F *DataHisto = (TH1F *)f1->Get("hFHCalE&hodoQ");
 	
 	Int_t CentralityClasses = 14;
 	int range_cent[15] = {0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100};

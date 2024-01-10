@@ -103,65 +103,71 @@ namespace Glauber
     Float_t NBD(Float_t n, Float_t mu, Float_t k) const;										                                                        			// Function for NBD counting with parameters mu and k
     void SetNBDhist(Float_t mu, Float_t k);												                                                                			// Setting of NBD distribution with parameters mu and k
 
-    float Nancestors(float f, TF1* mean_fit_proj, TF1* sigma_max_fit_proj, TF1* mean_fit_targ, TF1* sigma_max_fit_targ) const;												                                                                      			// Function for counting amount of ancestors in one event
-    float NancestorsMax(float f) const;														                                                                    	// Function for counting maximum amount of ancestors in one event
+    float Nancestors(float f, const TString& Ancestor_Mode) const;												                                                                      			// Function for counting amount of ancestors in one event
+    float NancestorsMax(float f, const TString& Ancestor_Mode) const;														                                                                    	// Function for counting maximum amount of ancestors in one event
         
     std::unique_ptr<TH1F> GetModelHisto (const Float_t range[2], const TString& name, const Float_t par[4]);                                                               // Returns model histogram with known parameters
         
 //         
 //  Setters
 //         
-    void SetInputHisto (const TH1F &h)   { fDataHisto = h; }											                      	// Setting of data histogram
-    void SetInputHisto2D (const TH2F &h) { fDataHisto2D = h; }											                      	// Setting of data histogram in case of 2D
-    void SetFitMinBinX  (Int_t min)      { fFitMinBin[0] = min; }											                   	// Setting of minimal bin for fitting along X axis
-    void SetFitMaxBinX  (Int_t max)      { fFitMaxBin[0] = max; }											                   	// Setting of maximal bin for fitting along X axis
-    void SetFitMinBinY  (Int_t min)      { fFitMinBin[1] = min; }											                   	// Setting of minimal bin for fitting along Y axis
-    void SetFitMaxBinY  (Int_t max)      { fFitMaxBin[1] = max; }											                   	// Setting of maximal bin for fitting along Y axis
-    void SetnMuIter (Int_t nMuIter)     { fnMuIter = nMuIter; }												                    // Setting of number of iterations of finding better mu (with same f and k)
-    void SetOutDirName (const TString& name)    { fOutDirName = name; }										                	// Setting of the name of directory for output files
-	void SetOutFileIDName (const TString& name) { fOutFileIDName = name; }										            	// Setting of ID of output files (ending of all output files of one job will have same ID)
-	void SetAncestor_Mode (const TString& Ancestor_Mode) { fAncestor_Mode = Ancestor_Mode; }							    	// Setting of the mode for counting ancestors
-	void SetMode (const TString& Mode) { fMode = Mode; }					                                                  	// Setting of the mode for fitting procedure
-    void SetHistoMode (const TString& HistoMode) { fHistoMode = HistoMode; }					                              	// Setting of the mode for input histogram
-    void SetFit_Mode (const TString& Fit_Mode) { fFit_Mode = Fit_Mode; }							                            // Setting of the mode for fitting procedure ("GoldenSection" or "Iteration")
-	void SetGlauber_filename (const TString& Glauber_filename) { fGlauber_filename = Glauber_filename; }						// Setting of input file with Glauber Tree
-	void SetGlauber_treename (const TString& Glauber_treename) { fGlauber_treename = Glauber_treename; }						// Setting of the name of tree with GlauberMC model
-	void SetDataHisto_filename (const TString& DataHisto_filename) { fDataHisto_filename = DataHisto_filename; }				// Setting of input file with data histo
-	void SetDataHisto_name (const TString& DataHisto_name) { fDataHisto_name = DataHisto_name; }							    // Setting of the name of data histo
-    void SetNEvents (Int_t Events) { fnEvents = Events; }                                                                       // Setting of number MC Glauber of events
-	void SetAProj (Float_t A) { fAProj = A; }														                            // Setting of mass number of projectile nucleus
-    void SetATarg (Float_t A) { fATarg = A; }														                            // Setting of mass number of target nucleus
-    void SetZProj (Float_t Z) { fZProj = Z; }														                            // Setting of charge number of projectile nucleus
-    void SetZTarg (Float_t Z) { fZTarg = Z; }														                            // Setting of charge number of target nucleus
-    void SetEBeam (Float_t E) { fEBeam = E; }														                            // Setting of energy of beam
-    void SetEstimatorStepX ( Int_t EstimatorStep ) { fEstimatorStep[0] = EstimatorStep; };		            					// Setting of step of variating lower and upper multiplicity range along X axis
-	void SetMinEstimatorX ( Int_t MinEstimator ) { fMinEstimator[0] = MinEstimator; };				            			    // Setting of not fitting low multiplicity region along X axis due to trigger bias, etc
-	void SetMaxEstimatorX ( Int_t MaxEstimator ) { fMaxEstimator[0] = MaxEstimator; };				            			    // Setting of very large number to fit the whole histo along X axis
-	void SetMinFitRangeX ( Int_t MinFitRange ) { fMinFitRange[0] = MinFitRange; };										        // Setting of minimal multiplicity range for fitting along X axis
-    void SetEstimatorStepY ( Int_t EstimatorStep ) { fEstimatorStep[1] = EstimatorStep; };				            			// Setting of step of variating lower and upper multiplicity range along Y axis
-    void SetMinEstimatorY ( Int_t MinEstimator ) { fMinEstimator[1] = MinEstimator; };					            		    // Setting of not fitting low multiplicity region along Y axis due to trigger bias, etc
-    void SetMaxEstimatorY ( Int_t MaxEstimator ) { fMaxEstimator[1] = MaxEstimator; };					            		    // Setting of very large number to fit the whole histo along X axis
-    void SetMinFitRangeY ( Int_t MinFitRange ) { fMinFitRange[1] = MinFitRange; };										        // Setting of minimal multiplicity range for fitting along X axis
-    void Set_kMin ( Float_t kMin ) { f_kMin = kMin; };													                        // Setting of lower parameter k
-	void Set_kMax ( Float_t kMax ) { f_kMax = kMax; };													                        // Setting of upper parameter k
-	void Set_kStep ( Float_t kStep ) { f_kStep = kStep; };												                       	// Setting of step of variating of parameter k
-	void Set_fMin ( Float_t fMin ) { f_fMin = fMin; };													                        // Setting of lower parameter f
-	void Set_fMax ( Float_t fMax ) { f_fMax = fMax; };													                        // Setting of upper parameter f
-    void Set_fStep ( Float_t fStep ) { f_fStep = fStep; };												                    	// Setting of step of variating of parameter f
-	void Set_muStep ( Float_t muStep ) { f_muStep = muStep; };											                        // Setting of step of variating of parameter mu
-	void Set_MuMinPercentage ( Float_t MuMinPercentage ) { f_MuMinPercentage = MuMinPercentage; };								// Setting of lower mu in percent for first iteration
-	void Set_MuMaxPercentage ( Float_t MuMaxPercentage ) { f_MuMaxPercentage = MuMaxPercentage; };								// Setting of upper mu in percent for first iteration
-    void SetYSigma (Float_t YSigma) { fYSigma = YSigma; };										                                // Setting constant parameter for rapidity shift sampling
+    void SetInputHisto (const TH1F &h)   { fDataHisto = h; }											                      				// Setting of data histogram
+    void SetInputHisto2D (const TH2F &h) { fDataHisto2D = h; }											                      				// Setting of data histogram in case of 2D
+    void SetAtotSampleHisto (const TH2F &h) { fAtotSampleHisto = h; }											                			// Setting of 2D histogram for sampling of Atot
+	void SetFitMinBinX  (Int_t min)      { fFitMinBin[0] = min; }											                   				// Setting of minimal bin for fitting along X axis
+    void SetFitMaxBinX  (Int_t max)      { fFitMaxBin[0] = max; }											                   				// Setting of maximal bin for fitting along X axis
+    void SetFitMinBinY  (Int_t min)      { fFitMinBin[1] = min; }											                   				// Setting of minimal bin for fitting along Y axis
+    void SetFitMaxBinY  (Int_t max)      { fFitMaxBin[1] = max; }											                   				// Setting of maximal bin for fitting along Y axis
+    void SetnMuIter (Int_t nMuIter)     { fnMuIter = nMuIter; }												                    			// Setting of number of iterations of finding better mu (with same f and k)
+    void SetOutDirName (const TString& name)    { fOutDirName = name; }										                				// Setting of the name of directory for output files
+	void SetOutFileIDName (const TString& name) { fOutFileIDName = name; }										            				// Setting of ID of output files (ending of all output files of one job will have same ID)
+	void SetAncestor_Mode (const TString& Ancestor_Mode) { fAncestor_Mode = Ancestor_Mode; }							    				// Setting of the mode for counting ancestors
+	void SetMode (const TString& Mode) { fMode = Mode; }					                                                  				// Setting of the mode for fitting procedure
+    void SetHistoMode (const TString& HistoMode) { fHistoMode = HistoMode; }					                              				// Setting of the mode for input histogram
+    void SetFit_Mode (const TString& Fit_Mode) { fFit_Mode = Fit_Mode; }							                            			// Setting of the mode for fitting procedure ("GoldenSection" or "Iteration")
+	void SetGlauber_filename (const TString& Glauber_filename) { fGlauber_filename = Glauber_filename; }									// Setting of the input file with Glauber Tree
+	void SetGlauber_treename (const TString& Glauber_treename) { fGlauber_treename = Glauber_treename; }									// Setting of the name of tree with GlauberMC model
+	void SetDataHisto_filename (const TString& DataHisto_filename) { fDataHisto_filename = DataHisto_filename; }							// Setting of the input file with data histo
+	void SetDataHisto_name (const TString& DataHisto_name) { fDataHisto_name = DataHisto_name; }							    			// Setting of the name of data histo
+    void SetAtotSampleHisto_filename (const TString& AtotSampleHisto_filename) { fAtotSampleHisto_filename = AtotSampleHisto_filename; }	// Setting of the input file name with 2D histo for Atot sampling
+	void SetAtotSampleHisto_name (const TString& AtotSampleHisto_name) { fAtotSampleHisto_name = AtotSampleHisto_name; }					// Setting of the name of 2D histo for Atot sampling
+	void SetNEvents (Int_t Events) { fnEvents = Events; }                                                                       			// Setting of number MC Glauber of events
+	void SetAProj (Float_t A) { fAProj = A; }														                            			// Setting of mass number of projectile nucleus
+    void SetATarg (Float_t A) { fATarg = A; }														                            			// Setting of mass number of target nucleus
+    void SetZProj (Float_t Z) { fZProj = Z; }														                            			// Setting of charge number of projectile nucleus
+    void SetZTarg (Float_t Z) { fZTarg = Z; }														                            			// Setting of charge number of target nucleus
+    void SetEBeam (Float_t E) { fEBeam = E; }														                            			// Setting of energy of beam
+    void SetEstimatorStepX ( Int_t EstimatorStep ) { fEstimatorStep[0] = EstimatorStep; };		            								// Setting of step of variating lower and upper multiplicity range along X axis
+	void SetMinEstimatorX ( Int_t MinEstimator ) { fMinEstimator[0] = MinEstimator; };				            			    			// Setting of not fitting low multiplicity region along X axis due to trigger bias, etc
+	void SetMaxEstimatorX ( Int_t MaxEstimator ) { fMaxEstimator[0] = MaxEstimator; };				            			    			// Setting of very large number to fit the whole histo along X axis
+	void SetMinFitRangeX ( Int_t MinFitRange ) { fMinFitRange[0] = MinFitRange; };										        			// Setting of minimal multiplicity range for fitting along X axis
+    void SetEstimatorStepY ( Int_t EstimatorStep ) { fEstimatorStep[1] = EstimatorStep; };				            						// Setting of step of variating lower and upper multiplicity range along Y axis
+    void SetMinEstimatorY ( Int_t MinEstimator ) { fMinEstimator[1] = MinEstimator; };					            		    			// Setting of not fitting low multiplicity region along Y axis due to trigger bias, etc
+    void SetMaxEstimatorY ( Int_t MaxEstimator ) { fMaxEstimator[1] = MaxEstimator; };					            		    			// Setting of very large number to fit the whole histo along X axis
+    void SetMinFitRangeY ( Int_t MinFitRange ) { fMinFitRange[1] = MinFitRange; };										       				// Setting of minimal multiplicity range for fitting along X axis
+    void Set_kMin ( Float_t kMin ) { f_kMin = kMin; };													                        			// Setting of lower parameter k
+	void Set_kMax ( Float_t kMax ) { f_kMax = kMax; };													                        			// Setting of upper parameter k
+	void Set_kStep ( Float_t kStep ) { f_kStep = kStep; };												                       				// Setting of step of variating of parameter k
+	void Set_fMin ( Float_t fMin ) { f_fMin = fMin; };													                        			// Setting of lower parameter f
+	void Set_fMax ( Float_t fMax ) { f_fMax = fMax; };													                        			// Setting of upper parameter f
+    void Set_fStep ( Float_t fStep ) { f_fStep = fStep; };												                    				// Setting of step of variating of parameter f
+	void Set_muStep ( Float_t muStep ) { f_muStep = muStep; };											                        			// Setting of step of variating of parameter mu
+	void Set_MuMinPercentage ( Float_t MuMinPercentage ) { f_MuMinPercentage = MuMinPercentage; };											// Setting of lower mu in percent for first iteration
+	void Set_MuMaxPercentage ( Float_t MuMaxPercentage ) { f_MuMaxPercentage = MuMaxPercentage; };											// Setting of upper mu in percent for first iteration
 
 
 //
 //  Getters
 //      
-	TString GetOutFileIDName () const { return fOutFileIDName; }												                                        // Returns ID of output files (its ending)
-	TString GetGlauber_filename () { return fGlauber_filename; }												                                        // Returns input file with Glauber Tree
+	TString GetAncestor_Mode () const { return fAncestor_Mode; }												                                        // Returns the mode for counting ancestors
+	TString GetOutFileIDName () const { return fOutFileIDName; }												                                        // Returns the ID of output files (its ending)
+	TString GetGlauber_filename () { return fGlauber_filename; }												                                        // Returns the input file name with Glauber Tree
 	TString GetGlauber_treename () { return fGlauber_treename; }                                        												// Returns the name of tree with
-	TString GetDataHisto_filename () { return fDataHisto_filename; }									                                        	    // Returns input file with data histo
+	TString GetDataHisto_filename () { return fDataHisto_filename; }									                                        	    // Returns the input file name with data histo
 	TString GetDataHisto_name () { return fDataHisto_name; }												                                            // Returns the name of data histo
+	TString GetAtotSampleHisto_filename () { return fAtotSampleHisto_filename; }									                                    // Returns the input file name with 2D histo for Atot sampling
+	TString GetAtotSampleHisto_name () { return fAtotSampleHisto_name; }												                                // Returns the name of 2D histo for Atot sampling
+
 
     TString GetMode ()   const   { return fMode; }					                                                                                    // Returns the mode for fitting function
     TString GetHistoMode ()   const   { return fHistoMode; }					                                                                        // Returns the mode for input histogram
@@ -185,7 +191,6 @@ namespace Glauber
 	Float_t Get_fMax ()   const   { return f_fMax; };										                                                   			// Returns upper parameter f
 	Float_t Get_fStep ()   const   { return f_fStep; };										                                                			// Returns step of variating of parameter f
 	Float_t Get_muStep ()   const   { return f_muStep; };										                                            			// Returns step of variating of parameter mu
-    Float_t GetYSigma ()   const   { return fYSigma; };										                                            	    		// Returns constant parameter for rapidity shift sampling
 
 
     TH1F GetGlauberFitHisto () const { return fGlauberFitHisto; }								                                        				// Returns model histogtam
@@ -194,7 +199,8 @@ namespace Glauber
     TH2F GetGlauberFitHisto2D () const { return fGlauberFitHisto2D; }							                                        				// Returns model histogtam in 2D case
     TH2F GetBestFitHisto2D ()    const { return fBestFitHisto2D;  }									                                            		// Returns model histogtam with minimal chi2 in 2D case
     TH2F GetDataHisto2D ()       const { return fDataHisto2D;  }										                                            	// Returns data histogram in 2D case
-    TH1F GetSampleHisto ()        const { return fSampleHisto;   }												                                        // Returns histogram of either NBD or Gauss distribution
+    TH1F GetSampleHisto ()        const { return fSampleHisto;   }																						// Returns histogram of either NBD or Gauss distribution
+	TH2F GetAtotSampleHisto ()        const { return fAtotSampleHisto;   }												                                // Returns 2D histogram for sampling of Atot        
         
 	std::map <TString, TH1F*> GetMapOfGlauber_Parameters_Histos () const { return Glauber_Parameters_Histos; }						                    // Returns map with historams of parameters of GlauberMC input file
 	std::map <TString, TH2F*> GetMapOfGlauber_Parameters_VS_Estimator_Histos () const { return Glauber_Parameters_VS_Estimator_Histos; }		        // Returns map with historams of parameters of GlauberMC input file versus modeled multiplicity
@@ -209,10 +215,16 @@ namespace Glauber
 	TH1F fDataHisto;
     TH2F fDataHisto2D;
     TH1F fSampleHisto;
+	TH2F fAtotSampleHisto;
     TH1F fGlauberFitHisto;
     TH2F fGlauberFitHisto2D;
     TH1F fBestFitHisto;
     TH2F fBestFitHisto2D;
+
+    TF1* mean_fit_proj;
+    TF1* sigma_max_fit_proj;
+    TF1* mean_fit_targ;
+    TF1* sigma_max_fit_targ;
 
 	std::map <TString, TH1F*> Glauber_Parameters_Histos;       
 	std::map <TString, TH2F*> Glauber_Parameters_VS_Estimator_Histos;
@@ -300,12 +312,11 @@ namespace Glauber
 	Float_t f_fMin{0.0};
 	Float_t f_fMax{1.0};
 	Float_t f_fStep{0.1};
-    Float_t f_muStep{0.01};                                // Width value of either NBD (for multiplicity) or Gauss (for energy)
+    Float_t f_muStep{0.01};                                // Mean value of either NBD (for multiplicity) or Gauss (for energy)
 	Float_t f_MuMinPercentage{0.7};
 	Float_t f_MuMaxPercentage{1.3};
-    Float_t fYSigma{1.0};                                  // Constant parameter for rapidity shift sampling
         
-    TString fAncestor_Mode{"Default"};                  // Default/Nspec/NspecProj/NspecTarg/Npart/Ncoll
+    TString fAncestor_Mode{"Default"};                  // Default/Nspec/NspecProj/NspecTarg/Atot/AtotProj/AtotTarg/Npart/Ncoll
 	TString fMode{"Multiplicity"};                      // Multiplicity/Energy/RapidityVSEnergy
     TString fHistoMode{"1D"};                           // 1D/2D
     TString fFit_Mode{"GoldenSection"};                 // GoldenSection/Iteration
@@ -313,6 +324,8 @@ namespace Glauber
 	TString fGlauber_treename{""};
 	TString fDataHisto_filename{""};
 	TString fDataHisto_name{""};
+	TString fAtotSampleHisto_filename{""};
+	TString fAtotSampleHisto_name{""};
         
     TString fOutDirName{""};
 	TString fOutFileIDName {""};

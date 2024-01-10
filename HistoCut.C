@@ -2,10 +2,10 @@ void HistoCut(TString InFileName)
 {
 	TFile *f1 = new TFile(Form("%s/glauber_qa.root", InFileName.Data()));
 	TH1F *FitHisto = (TH1F *)f1->Get("glaub_fit_histo");
-	TH1F *DataHisto = (TH1F *)f1->Get("RefMult_19");
+	TH1F *DataHisto = (TH1F *)f1->Get("h1_track_multiplicity");
 	
-	Int_t CentralityClasses = 11;
-	int range_cent[12] = {0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+	Int_t CentralityClasses = 14;
+	int range_cent[15] = {0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100};
 
 	Int_t bins = FitHisto->GetNbinsX();
 	Int_t binsN = FitHisto->FindLastBinAbove();

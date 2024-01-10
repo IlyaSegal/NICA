@@ -2,6 +2,10 @@ void AtotNspecFit(TString InFileName, TString OutFileName)
 {
     TFile *file = new TFile(InFileName);    
     auto *in_histo = (TH2D*) file->Get("ATotProj_NSpecProj");
+//    auto* ATotSampleHisto = (THnSparseD*)file->Get("B_ATotProj_NFragProj_NSpecProj");
+//    ATotSampleHisto->GetAxis(0)->SetRange(0, 210);
+//    ATotSampleHisto->GetAxis(2)->SetRange(0, 210);
+//    auto* in_histo = (TH2D*)ATotSampleHisto->Projection(3, 1);
     
     std::vector <Float_t> mean_vec;
     std::vector <Float_t> sigma_vec;
@@ -15,11 +19,13 @@ void AtotNspecFit(TString InFileName, TString OutFileName)
     std::vector <Float_t> sigma_error_min;
     Float_t mean, mean_error, sigma, sigma_error;
     
-    for (Int_t i=0; i<in_histo->GetNbinsY(); i++)
+    for (Int_t i=0; i<208; i++)
     {
     	auto *histo_proj = (TH1D*) in_histo->ProjectionX("histo_proj", i, i+1);
-    	mean = histo_proj->GetMean();
-    	mean_error = histo_proj->GetMeanError();
+//    	mean = histo_proj->GetMean();
+	mean = histo_proj->GetMaximumBin();
+//    	mean_error = histo_proj->GetMeanError();
+	mean_error = 0.1;
     	sigma = histo_proj->GetRMS();
     	sigma_error = histo_proj->GetRMSError();
         mean_vec.push_back(mean);
@@ -48,8 +54,8 @@ void AtotNspecFit(TString InFileName, TString OutFileName)
     graph_sigma_min->SetTitle("<A_{tot}>-#sigma(A_{tot}) VS N_{spec};<A_{tot}>-#sigma(A_{tot});N_{spec}");
         
 
-    auto* mean_fit = new TF1("mean_fit", "[0]+[1]*TMath::Power(x,[2])", 0, nspec_vec.at(nspec_vec.size()-1));
-    mean_fit->SetParameters(0,1,0.3);
+    auto* mean_fit = new TF1("mean_fit", "TMath::Power(208,1-[0])*TMath::Power(x,[0])", 0, nspec_vec.at(nspec_vec.size()-1));
+    mean_fit->SetParameter(0, 0.3);
     auto* sigma_max_fit = new TF1("sigma_max_fit", "[0]+[1]*TMath::Power(x,[2])", 0, nspec_vec.at(nspec_vec.size()-1));
     sigma_max_fit->SetParameters(0,1,0.3);
     auto* sigma_min_fit = new TF1("sigma_min_fit", "[0]+[1]*TMath::Power(x,[2])", 0, nspec_vec.at(nspec_vec.size()-1));

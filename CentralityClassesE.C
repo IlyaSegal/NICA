@@ -32,6 +32,12 @@ void CentralityClassesE(TString InFileName)
 	Result->Branch("MaxPercent", &MaxPercent);
 	Result->Branch("MinBorder", &MinBorder_R);
 	Result->Branch("MaxBorder", &MaxBorder_R);
+	Result->Branch("BAverage", &B_av);
+	Result->Branch("BWidth", &RMS_B_av);
+	Result->Branch("NpartAverage", &Npart_av);
+	Result->Branch("NpartWidth", &RMS_Npart_av);
+	Result->Branch("NcollAverage", &Ncoll_av);
+	Result->Branch("NcollWidth", &RMS_Ncoll_av);
 
 	TH1D *B_VS_CentralityHisto[CentralityClasses + 1];
 	for (int i = 0; i < CentralityClasses + 1; i++)
@@ -50,38 +56,9 @@ void CentralityClassesE(TString InFileName)
 		Ncoll_VS_CentralityHisto[i] = new TH1D(Form("Ncoll_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), ";Ncoll;counts", 1000, 0, 1000);
 	for (int i = 0; i < CentralityClasses + 1; i++)
 		Ncoll_VS_CentralityHisto[i]->SetBit(TH1::kNoStats);
-
-	TH1D *B_average_VS_Centrality = new TH1D("B_average_VS_Centrality", ";Centrality, %;B, fm;", CentralityClasses, 0, 100);
-	TH1D *Npart_average_VS_Centrality = new TH1D("Npart_average_VS_Centrality", ";Centrality, %;N_{part}", CentralityClasses, 0, 100);
-	TH1D *Ncoll_average_VS_Centrality = new TH1D("Ncoll_average_VS_Centrality", ";Centrality, %;N_{coll}", CentralityClasses, 0, 100);
-
-	B_average_VS_Centrality->SetBit(TH1::kNoStats);
-	Npart_average_VS_Centrality->SetBit(TH1::kNoStats);
-	Ncoll_average_VS_Centrality->SetBit(TH1::kNoStats);
-
-	B_average_VS_Centrality->SetLineColor(kBlack);
-	Npart_average_VS_Centrality->SetLineColor(kBlack);
-	Ncoll_average_VS_Centrality->SetLineColor(kBlack);
-
-	B_average_VS_Centrality->SetLineWidth(1);
-	Npart_average_VS_Centrality->SetLineWidth(1);
-	Ncoll_average_VS_Centrality->SetLineWidth(1);
-
-	B_average_VS_Centrality->SetMarkerStyle(20);
-	Npart_average_VS_Centrality->SetMarkerStyle(20);
-	Ncoll_average_VS_Centrality->SetMarkerStyle(20);
-
-	B_average_VS_Centrality->SetMarkerSize(5);
-	Npart_average_VS_Centrality->SetMarkerSize(5);
-	Ncoll_average_VS_Centrality->SetMarkerSize(5);
-
-	B_average_VS_Centrality->SetMarkerColor(kBlack);
-	Npart_average_VS_Centrality->SetMarkerColor(kBlack);
-	Ncoll_average_VS_Centrality->SetMarkerColor(kBlack);
-
-	B_average_VS_Centrality->GetXaxis()->SetNdivisions(10, kTRUE);
-	Npart_average_VS_Centrality->GetXaxis()->SetNdivisions(10, kTRUE);
-	Ncoll_average_VS_Centrality->GetXaxis()->SetNdivisions(10, kTRUE);
+		
+	double B_av_ar[CentralityClasses], Npart_av_ar[CentralityClasses], Ncoll_av_ar[CentralityClasses], centbin[CentralityClasses];
+	double RMS_B_av_ar[CentralityClasses], RMS_Npart_av_ar[CentralityClasses], RMS_Ncoll_av_ar[CentralityClasses], centEr[CentralityClasses];
 
 	B_VS_CentralityHisto[CentralityClasses] = B_VS_Multiplicity->ProjectionY("B_VS_CentralityClass 0%-100%", 0, 10000);
 	Npart_VS_CentralityHisto[CentralityClasses] = Npart_VS_Multiplicity->ProjectionY("Npart_VS_CentralityClass 0%-100%", 0, 10000);
@@ -89,9 +66,9 @@ void CentralityClassesE(TString InFileName)
 	for (int i = 0; i < entries; i++)
 	{
 		Borders->GetEntry(i);
-		B_VS_CentralityHisto[i] = B_VS_Multiplicity->ProjectionY(Form("B_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), MinBorder, MaxBorder);
-		Npart_VS_CentralityHisto[i] = Npart_VS_Multiplicity->ProjectionY(Form("Npart_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), MinBorder, MaxBorder);
-		Ncoll_VS_CentralityHisto[i] = Ncoll_VS_Multiplicity->ProjectionY(Form("Ncoll_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), MinBorder, MaxBorder);
+		B_VS_CentralityHisto[i] = B_VS_Multiplicity->ProjectionY(Form("B_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), MinBorder/5, MaxBorder/5);
+		Npart_VS_CentralityHisto[i] = Npart_VS_Multiplicity->ProjectionY(Form("Npart_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), MinBorder/5, MaxBorder/5);
+		Ncoll_VS_CentralityHisto[i] = Ncoll_VS_Multiplicity->ProjectionY(Form("Ncoll_VS_CentralityClass %1.1d%%-%1.1d%%", range_cent[i], range_cent[i + 1]), MinBorder/5, MaxBorder/5);
 	}
 
 	int j = 1;
@@ -148,6 +125,8 @@ void CentralityClassesE(TString InFileName)
 		Ncc = i + 1;
 		MinPercent = range_cent[i];
 		MaxPercent = range_cent[i + 1];
+		centbin[i] = range_cent[i] + (range_cent[i+1]-range_cent[i])/2;
+        	centEr[i] = 0;
 
 		Borders->GetEntry(i);
 
@@ -157,21 +136,25 @@ void CentralityClassesE(TString InFileName)
 		B_av = B_VS_CentralityHisto[i]->GetMean();
 		Npart_av = Npart_VS_CentralityHisto[i]->GetMean();
 		Ncoll_av = Ncoll_VS_CentralityHisto[i]->GetMean();
+		
+		B_av_ar[i] = B_av;
+		Npart_av_ar[i] = Npart_av;
+		Ncoll_av_ar[i] = Ncoll_av;
 
 		RMS_B_av = B_VS_CentralityHisto[i]->GetRMS();
 		RMS_Npart_av = Npart_VS_CentralityHisto[i]->GetRMS();
 		RMS_Ncoll_av = Ncoll_VS_CentralityHisto[i]->GetRMS();
-
-		B_average_VS_Centrality->SetBinContent(i + 1, B_av);
-		Npart_average_VS_Centrality->SetBinContent(i + 1, Npart_av);
-		Ncoll_average_VS_Centrality->SetBinContent(i + 1, Ncoll_av);
-
-		B_average_VS_Centrality->SetBinError(i + 1, RMS_B_av);
-		Npart_average_VS_Centrality->SetBinError(i + 1, RMS_Npart_av);
-		Ncoll_average_VS_Centrality->SetBinError(i + 1, RMS_Ncoll_av);
+		
+		RMS_B_av_ar[i] = RMS_B_av;
+		RMS_Npart_av_ar[i] = RMS_Npart_av;
+		RMS_Ncoll_av_ar[i] = RMS_Ncoll_av;
 
 		Result->Fill();
 	}
+	
+	TGraphErrors *B_average_VS_Centrality = new TGraphErrors(14, centbin, B_av_ar, centEr, RMS_B_av_ar);
+	TGraphErrors *Npart_average_VS_Centrality = new TGraphErrors(14, centbin, Npart_av_ar, centEr, RMS_Npart_av_ar);
+	TGraphErrors *Ncoll_average_VS_Centrality = new TGraphErrors(14, centbin, Ncoll_av_ar, centEr, RMS_Ncoll_av_ar);
 
 	for (int i = 0; i <= CentralityClasses; i++)
 		B_VS_CentralityHisto[i]->Write();

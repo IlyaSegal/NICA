@@ -1,8 +1,8 @@
 void CentralityClassesComp()
 {
 	TFile *fM = new TFile("/home/isegal/NA61/centrality/mult/FINAL.root");
-	TFile *fE = new TFile("/home/isegal/NA61/centrality/PSD/FINAL.root");
-	TFile *fdata = new TFile("/home/isegal/NA61/data/QA/qa13sel_16026.root");
+	TFile *fE = new TFile("/home/isegal/NA61/centrality/psd_mult/FINAL.root");
+	TFile *fdata = new TFile("/home/isegal/NA61/data/PbPb_pbeam_13AGeV/QA/qa13sel_16026.root");
 	TTree *ResultM = (TTree*)fM->Get("Result");
 	TTree *ResultE = (TTree*)fE->Get("Result");
 	TH2D* hME = (TH2D*)fdata->Get("h2_MgoodMid_psdE");
@@ -39,7 +39,7 @@ void CentralityClassesComp()
         		CE.push_back(MinPercentE+(MaxPercentE-MinPercentE)/2);
         		N.push_back(hME->Integral(hME->GetXaxis()->FindBin(MinBorderM), hME->GetXaxis()->FindBin(MaxBorderM), hME->GetXaxis()->FindBin(MinBorderE), hME->GetXaxis()->FindBin(MaxBorderE)));
         		sum = sum + hME->Integral(hME->GetXaxis()->FindBin(MinBorderM), hME->GetXaxis()->FindBin(MaxBorderM), hME->GetXaxis()->FindBin(MinBorderE), hME->GetXaxis()->FindBin(MaxBorderE));
-        		for (Float_t CMbin=MinPercentM; CMbin<MaxPercentM; CMbin = CMbin + 5.0) for (Float_t CEbin=MinPercentE; CEbin<MaxPercentE; CEbin = CEbin + 5.0) hMEComp->SetBinContent((Int_t)(CMbin/5)+1, (Int_t)(CEbin/5)+1, 100*hME->Integral(hME->GetXaxis()->FindBin(MinBorderM), hME->GetXaxis()->FindBin(MaxBorderM), hME->GetXaxis()->FindBin(MinBorderE), hME->GetXaxis()->FindBin(MaxBorderE))/hME->GetEntries());
+        		for (Float_t CMbin=MinPercentM; CMbin<MaxPercentM; CMbin = CMbin + 5.0) for (Float_t CEbin=MinPercentE; CEbin<MaxPercentE; CEbin = CEbin + 5.0) hMEComp->SetBinContent((Int_t)(CMbin/5)+1, (Int_t)(CEbin/5)+1, 100*hME->Integral(hME->GetXaxis()->FindBin(MinBorderM), hME->GetXaxis()->FindBin(MaxBorderM), hME->GetYaxis()->FindBin(MinBorderE), hME->GetYaxis()->FindBin(MaxBorderE))/hME->GetEntries());
     		}
     	}
 

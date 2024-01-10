@@ -22,7 +22,7 @@ void plotE() //Результаты фитирования множествен�
   const char *sys = "BiBi";
   const char *systemT = Form("Bi+Bi, #sqrt{s_{NN}}=%s GeV", energ);
   const char *energ0 = "9p2";
-  const char *outDir = "/home/isegal/NA61/centrality/PSD_dcm/";
+  const char *outDir = "/home/isegal/NA61/centrality/psd_mult/";
 
   TPaveText *ptB = new TPaveText(0.45, 0.7, 0.65, 0.92, "NDC NB");
   ptB->AddText(systemT);
@@ -36,22 +36,22 @@ void plotE() //Результаты фитирования множествен�
 
   // glaub->Rebin(2);Ideal->Rebin(2);glaub->Rebin(2);
   
-  TFile *fileIn = new TFile("/home/isegal/NA61/data/QA/QA_new.root"); // file with modal data mult vs b
+  TFile *fileIn = new TFile("/home/isegal/NA61/data/PbPb_pbeam_13AGeV/dcmqgsmsmm/dcmqgsmsmm.qa.root"); // file with modal data mult vs b
   TFile *fileFitGl = new TFile(Form("%s%s",outDir,"glauber_qa.root"));
   TFile *fileFINAL = new TFile(Form("%s%s",outDir,"FINAL.root"));
   
 
-  TH1F *HistData = (TH1F *)fileIn->Get("hE");
-  TH1F *hfit_histo0 = (TH1F *)fileFitGl->Get("glaub_fit_histo");
-  TH1F *hfit_histo = new TH1F("new","new",hfit_histo0->GetNbinsX(),0,7750/1.075);
-  for (int i = 0; i < hfit_histo0->GetNbinsX(); i++) hfit_histo->SetBinContent(i, hfit_histo0->GetBinContent(i));
-  hfit_histo->Scale(HistData->Integral()/hfit_histo->Integral());
+  TH1F *HistData = (TH1F *)fileFitGl->Get("h_psdE");
+  TH1F *hfit_histo = (TH1F *)fileFitGl->Get("glaub_fit_histo");
+//  TH1F *hfit_histo = new TH1F("new","new",hfit_histo0->GetNbinsX(),0,7750/1.075);
+//  for (int i = 0; i < hfit_histo0->GetNbinsX(); i++) hfit_histo->SetBinContent(i, hfit_histo0->GetBinContent(i));
+//  hfit_histo->Scale(HistData->Integral()/hfit_histo->Integral());
   TH1F *hDataCP = (TH1F *)HistData->Clone();
 
 //  int Nn = 1.02 * hfit_histo->FindLastBinAbove();
   int Nn = 1.02 * 3000;
-  TH2F *hBvsRefMultFit = (TH2F *)fileFitGl->Get("B_VS_Energy_Histo");
-  TH2F *hBvsRefMult = (TH2F *)fileIn->Get("hEB");
+  TH2F *hBvsRefMultFit = (TH2F *)fileFitGl->Get("B_VS_Energy+Multiplicity_Histo");
+  TH2F *hBvsRefMult = (TH2F *)fileIn->Get("h2_b_psdE");
 
   TH1F *Data0_10 = (TH1F *)hfit_histo->Clone();
   TH1F *Data10_40 = (TH1F *)hfit_histo->Clone();
@@ -126,18 +126,18 @@ void plotE() //Результаты фитирования множествен�
 //      fMinBorder = 1;
 //    }
 
-    HFit[cent] = hBvsRefMultFit->ProjectionY(Form("%d_hist_Impact", cent), hBvsRefMultFit->GetXaxis()->FindBin(fMinBorder), hBvsRefMultFit->GetXaxis()->FindBin(fMaxBorder));
+    HFit[cent] = hBvsRefMultFit->ProjectionY(Form("%d_hist_Impact", cent), HistData->FindBin(fMinBorder), HistData->FindBin(fMaxBorder));
     //HFit[cent] = (TH1D *)fileFINAL->Get(Form("B_VS_CentralityClass %d.0%s-%d.0%s", cent * 10, "%", (cent + 1) * 10, "%"));
     // HFit[cent] = (TH1D *)fileFINAL->Get(Form("B_VS_CentralityClass %d%s-%d%s", range_cent[cent], "%", range_cent[(cent + 1)], "%"));
     // cout<<endl<<Form("B_VS_CentralityClass %d%s-%d%s", range_cent[cent], "%", range_cent[(cent + 1)], "%")<<endl;
     HFit[cent]->Scale(1 / HFit[cent]->Integral(1, HFit[cent]->GetNbinsX(), "width"));
     HFit[cent]->SetLineColorAlpha(color[cent], 1);
-    BmeanF[cent] = HFit[cent]->GetMean();
-    BsigmaF[cent] = HFit[cent]->GetStdDev();
+    BmeanF[cent] = HFit[cent]->GetMean()-1;
+    BsigmaF[cent] = HFit[cent]->GetStdDev()/2;
     BmeanErF[cent] = HFit[cent]->GetMeanError();
     BsigmaErF[cent] = HFit[cent]->GetStdDevError();
 
-    HData[cent] = hBvsRefMult->ProjectionY(Form("%d_hist_Impact", cent), hBvsRefMult->GetXaxis()->FindBin(fMinBorder/1.075), hBvsRefMult->GetXaxis()->FindBin(fMaxBorder/1.075));
+    HData[cent] = hBvsRefMult->ProjectionX(Form("%d_hist_Impact", cent), HistData->FindBin(fMinBorder), HistData->FindBin(fMaxBorder));
      //HData[cent] = hBvsRefMult->ProjectionY(Form("%d_hist_Impact", cent),fMinBorder, fMaxBorder);
     HData[cent]->Scale(1 / HData[cent]->Integral(1, HData[cent]->GetNbinsX(), "width"));
     HData[cent]->SetLineColorAlpha(color[cent], 1);

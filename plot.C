@@ -17,12 +17,12 @@ void plot() //Результаты фитирования множественн
   Color_t MColor[3] = {1, kBlue + 1, kRed + 2};
 
   const char *model0 = "run8";
-  const char *modelT = "BM@N run8";
-  const char *energ = "4";
+  const char *modelT = "BM@N run8, CCT2, VF";
+  const char *energ = "3.8";
   const char *sys = "XeCsI";
   const char *systemT = Form("Xe+CsI, E_{kin}=%s GeV", energ);
-  const char *energ0 = "4";
-  const char *outDir = "/home/isegal/BM@N/centrality/run8/mult/";
+  const char *energ0 = "3.8";
+  const char *outDir = "/home/isegal/BM@N/centrality/run8/mult_VF/";
 
   TPaveText *ptB = new TPaveText(0.45, 0.7, 0.65, 0.92, "NDC NB");
   ptB->AddText(systemT);
@@ -37,7 +37,7 @@ void plot() //Результаты фитирования множественн
   // glaub->Rebin(2);Ideal->Rebin(2);glaub->Rebin(2);
 
   TFile *fileFitGl = new TFile(Form("%s%s",outDir,"glauber_qa.root"));
-  TFile *fileIn = new TFile("/home/isegal/NA61/data/QA/qa_pbpp_13agev_mc.root"); // file with modal data mult vs b
+  TFile *fileIn = new TFile("/home/isegal/NA61/data/PbPb_pbeam_13AGeV/QA/qa_pbpp_13agev_mc.root"); // file with modal data mult vs b
   TFile *fileFINAL = new TFile(Form("%s%s",outDir,"FINAL.root"));
   
   TH1F *HistData = (TH1F *)fileFitGl->Get("h1_track_multiplicity");
@@ -129,7 +129,7 @@ void plot() //Результаты фитирования множественн
     // cout<<endl<<Form("B_VS_CentralityClass %d%s-%d%s", range_cent[cent], "%", range_cent[(cent + 1)], "%")<<endl;
     HFit[cent]->Scale(1 / HFit[cent]->Integral(1, HFit[cent]->GetNbinsX(), "width"));
     HFit[cent]->SetLineColorAlpha(color[cent], 1);
-    BmeanF[cent] = HFit[cent]->GetMean()+0.4;
+    BmeanF[cent] = HFit[cent]->GetMean();
     BsigmaF[cent] = HFit[cent]->GetStdDev();
     BmeanErF[cent] = HFit[cent]->GetMeanError();
     BsigmaErF[cent] = HFit[cent]->GetStdDevError();
@@ -175,7 +175,7 @@ void plot() //Результаты фитирования множественн
   GrFit->GetYaxis()->SetTitle("<b>, fm");
   TGraphErrors *GrRatio = RatioGr(GrFit, GrData, 0, 0.85, 100, 1.15);
   GrRatio->SetTitle("");
-  GrRatio->GetYaxis()->SetTitle("MC-Gl/Model");
+  GrRatio->GetYaxis()->SetTitle("MC-Gl/Data");
   GrRatio->GetXaxis()->SetTitle("Centrality, %");
   GrRatio->GetXaxis()->SetTitleSize(0.1);
   GrRatio->GetXaxis()->SetLabelSize(0.1);
@@ -203,7 +203,7 @@ void plot() //Результаты фитирования множественн
   // TLegend *legdif = new TLegend(0.2, 0.7, 0.4, 0.9);
   TLegend *legdif = new TLegend(0.65, 0.15, 0.85, 0.3);
   legdif->SetBorderSize(0);
-  legdif->AddEntry(GrData, "Model", "p");
+  legdif->AddEntry(GrData, "Data", "p");
   legdif->AddEntry(GrFit, "MC-Gl", "p");
   legdif->SetTextSize(0.035);
   legdif->Draw();
@@ -267,7 +267,7 @@ void plot() //Результаты фитирования множественн
   TGraphErrors *RatioUrFit;
   RatioUrFit = RatioGr(GrFitMult, GrDataMult, 0, 0.65, Nn, 1.35, true);
   RatioUrFit->GetXaxis()->SetTitle("N_{ch}");
-  RatioUrFit->GetYaxis()->SetTitle("MC-Gl/Model");
+  RatioUrFit->GetYaxis()->SetTitle("MC-Gl/Data");
   RatioUrFit->SetTitle("");
   RatioUrFit->GetYaxis()->SetTitleSize(25);
   RatioUrFit->GetYaxis()->SetTitleFont(43);
@@ -336,8 +336,8 @@ void plot() //Результаты фитирования множественн
   Data10_40->SetFillStyle(3003);
   Data10_40->SetLineColor(kGray + 1);
   
-  CutHisto(Data40_80, binNch[11], binNch[7]);
-  //CutHisto(Data40_80, binNch[11], binNch[7]);
+ CutHisto(Data40_80, binNch[9], binNch[7]);
+  //CutHisto(Data40_80, binNch[9], binNch[7]);
   Data40_80->SetFillColor(kGray + 5);
   Data40_80->SetFillStyle(3002);
   Data40_80->SetLineColor(kGray + 1);
@@ -365,11 +365,11 @@ void plot() //Результаты фитирования множественн
 
   TLegend *legdif1 = new TLegend(0.8, 0.6, 0.95, 0.91);
   legdif1->SetBorderSize(0);
-  legdif1->AddEntry(GrDataMult, "Model", "p");
+  legdif1->AddEntry(GrDataMult, "Data", "p");
   legdif1->AddEntry(GrFitMult, "MC-Gl", "p");
   legdif1->AddEntry(Data0_10, "0-10%", "f");
   legdif1->AddEntry(Data10_40, "10-40%", "f");
-  legdif1->AddEntry(Data40_80, "40-80%", "f");
+  legdif1->AddEntry(Data40_80, "40-60%", "f");
   legdif1->SetTextSize(0.035);
   legdif1->Draw();
   ptB->Draw();
@@ -384,7 +384,7 @@ void plot() //Результаты фитирования множественн
   latex.SetTextFont(42);
   latex.SetTextAngle(90);
 
-  for (int i = 0; i < Nclasses; i++)
+  for (int i = 0; i < 9; i++)
   {
     Result->GetEntry(i);
     line.DrawLine(binNch[i], 0, binNch[i], GlaubV[i]);
@@ -407,10 +407,10 @@ void plot() //Результаты фитирования множественн
     {
       latex.DrawLatex(0.5 * (MinBorder + MaxBorder), 0.5 * sqrt(GlaubV[0]), Form("%d-%d%s", IntMinC, IntMaxC, "%"));
     }
-    if (i > 6)
-    {
-      line.SetLineStyle(2);
-    }
+//    if (i > 6)
+//    {
+//      line.SetLineStyle(2);
+//    }
   }
 
   c->SaveAs(Form("%sGlFit_%s_%s_%s_test.png", outDir, model0, energ0, sys));

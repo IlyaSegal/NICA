@@ -49,11 +49,12 @@ int main(int argc, char *argv[])
     Float_t fMin;
     Float_t fMax;
     Float_t fStep;
-    Float_t fYSigma;
     TString Glauber_filename;
     TString Glauber_treename;
     TString DataHisto_filename;
     TString DataHisto_name;
+    TString AtotSampleHisto_filename;
+    TString AtotSampleHisto_name;
     TString OutDirName;
     TString OutFileIDName;
     TString Ancestor_Mode;
@@ -94,8 +95,6 @@ int main(int argc, char *argv[])
     fitter.Set_fMax (fMax);
     configfile >> str >> fStep;
     fitter.Set_fStep (fStep);
-    configfile >> str >> fYSigma;
-    fitter.SetYSigma(fYSigma);
     configfile >> str >> Glauber_filename;
     fitter.SetGlauber_filename (Glauber_filename);
     configfile >> str >> Glauber_treename;
@@ -104,6 +103,10 @@ int main(int argc, char *argv[])
     fitter.SetDataHisto_filename (DataHisto_filename);
     configfile >> str >> DataHisto_name;
     fitter.SetDataHisto_name (DataHisto_name);
+//    configfile >> str >> AtotSampleHisto_filename;
+//    fitter.SetAtotSampleHisto_filename (AtotSampleHisto_filename);
+//    configfile >> str >> AtotSampleHisto_name;
+//    fitter.SetAtotSampleHisto_name (AtotSampleHisto_name);
     configfile >> str >> OutDirName;
     fitter.SetOutDirName (OutDirName);
     configfile >> str >> OutFileIDName;
@@ -135,7 +138,6 @@ int main(int argc, char *argv[])
     std::cout << "Fitting function: " << fitter.GetFit_Mode() << std::endl;
     std::cout << "fmax=" << fitter.Get_fMax() << std::endl;
     std::cout << "fmin=" << fitter.Get_fMin() << std::endl;
-    std::cout << "fmax=" << fitter.Get_fMax() << std::endl;
     std::cout << "f_step=" << fitter.Get_fStep() << std::endl;
     std::cout << "kmin=" << fitter.Get_kMin() << std::endl;
     std::cout << "kmax=" << fitter.Get_kMax() << std::endl;
@@ -152,6 +154,7 @@ int main(int argc, char *argv[])
     std::unique_ptr<TFile> glauber_file{ TFile::Open(fitter.GetGlauber_filename(), "read") };
     std::unique_ptr<TTree> glauber_tree{ (TTree*) glauber_file->Get(fitter.GetGlauber_treename()) };
     std::unique_ptr<TFile> f{TFile::Open(fitter.GetDataHisto_filename())};
+    std::unique_ptr<TFile> fAtot{TFile::Open(fitter.GetAtotSampleHisto_filename())};
 
     if (fitter.GetHistoMode() == "1D") {
         TH1F *hdata = (TH1F*)f->Get(fitter.GetDataHisto_name());
@@ -165,6 +168,17 @@ int main(int argc, char *argv[])
         std::cout << "ERROR: Invalid histo mode" << std::endl;
         return 0;
     }
+
+    if (fitter.GetAncestor_Mode() == "AtotHisto" || fitter.GetAncestor_Mode() == "AtotProjHisto" || fitter.GetAncestor_Mode() == "AtotTargHisto") {
+        if (!fAtot || fitter.GetAtotSampleHisto_name() == "") {
+            std::cout << "ERROR: AtotSampleHisto is not provided" << std::endl;
+            return 0;
+        }
+        else {
+            TH2F *hAtotSampleHisto = (TH2F*)fAtot->Get(fitter.GetAtotSampleHisto_name());
+            fitter.SetAtotSampleHisto(*hAtotSampleHisto);
+        }
+    }    
 
     fitter.Init(std::move(glauber_tree));
 
