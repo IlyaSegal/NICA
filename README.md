@@ -24,7 +24,7 @@ The template of the config.txt file can be found in the centrality-master direct
 
 Description of the config file fields can be found below:
 
-Seed: seed for the gRandom
+Seed: seed for the gRandom //
 EstimatorStepX: step of the bins for Chi2 calculation for the X dimension
 MinEstimatorX: minimum bin for Chi2 calculation for the X dimension
 MaxEstimatorX: maximum bin for Chi2 calculation for the X dimension
