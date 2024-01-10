@@ -1,0 +1,32 @@
+Seed: 0
+EstimatorStepX: 1
+MinEstimatorX: 50
+MaxEstimatorX: 250
+MinFitRangeX: 200
+EstimatorStepY: 0
+MinEstimatorY: 0
+MaxEstimatorY: 0
+MinFitRangeY: 0
+kMin: 0.0
+kMax: 0.0
+kStep: 0.0
+fMin: 0.0
+fMax: 1.0
+fStep: 0.01
+Glauber_filename: /lustre/home/user/i/isegal/soft/glauber/XeCs_3.8AGeV_glauber.root
+Glauber_treename: nt_Xe_Cs
+DataHisto_filename: /lustre/home/user/i/isegal/bmn/run8/qa/cct2bc1fdsts.qa.root
+DataHisto_name: h1_track_multiplicity
+OutDirName: 
+OutFileIDName: 
+Ancestor_Mode: Default
+Mode: Multiplicity
+HistoMode: 1D
+Fit_Mode: GoldenSection
+nMuIter: 10
+AProj: 129
+ZProj: 54
+ATarg: 133
+ZTarg: 55
+EBeam: 3.8
+NEvents: 2000000

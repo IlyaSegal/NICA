@@ -1,0 +1,33 @@
+Seed: 0
+EstimatorStepX: 1
+MinEstimatorX: 1
+MaxEstimatorX: 200
+MinFitRangeX: 199
+EstimatorStepY: 0
+MinEstimatorY: 0
+MaxEstimatorY: 0
+MinFitRangeY: 0
+kMin: 0.0
+kMax: 0.0
+kStep: 0.0
+fMin: 0.0
+fMax: 0.0
+fStep: 1.0
+YSigma: 0.0
+Glauber_filename: /eos/nica/mpd/users/isegal/soft/glauber/XeCs_pbeam_4.85AGeV_glauber.root
+Glauber_treename: nt_Xe_Cs
+DataHisto_filename: /eos/nica/mpd/users/isegal/soft/macro/qa_centr_new.root
+DataHisto_name: hFHCalE&hodoQ
+OutDirName: 
+OutFileIDName: 
+Ancestor_Mode: NspecProj
+Mode: Energy
+HistoMode: 1D
+Fit_Mode: GoldenSection
+nMuIter: 10
+AProj: 129
+ZProj: 54
+ATarg: 133
+ZTarg: 55
+EBeam: 4.96
+NEvents: 2000000
